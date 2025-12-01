@@ -20,12 +20,21 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/migrations/001_initial.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U wealthpath"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  flyway:
+    build: ./migrations
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/wealthpath
+      FLYWAY_USER: wealthpath
+      FLYWAY_PASSWORD: wealthpath123
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   backend:
     build: ./backend
@@ -36,8 +45,8 @@ services:
       JWT_SECRET: docker-compose-secret-change-in-production
       PORT: "8080"
     depends_on:
-      postgres:
-        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
 
   frontend:
     build: ./frontend
