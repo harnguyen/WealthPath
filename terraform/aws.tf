@@ -100,7 +100,51 @@ resource "aws_instance" "wealthpath" {
   key_name               = aws_key_pair.wealthpath[0].key_name
   vpc_security_group_ids = [aws_security_group.wealthpath[0].id]
 
-  user_data = local.user_data
+  user_data = <<-EOF
+    #!/bin/bash
+    exec > /var/log/wealthpath-setup.log 2>&1
+    set -ex
+    
+    # Update system
+    apt update && apt upgrade -y
+    
+    # Install Docker
+    curl -fsSL https://get.docker.com | sh
+    
+    # Install Docker Compose plugin
+    apt install -y docker-compose-plugin git jq
+    
+    # Clone app
+    mkdir -p /opt/wealthpath
+    cd /opt/wealthpath
+    git clone https://github.com/thanhhungg97/WealthPath.git .
+    
+    # Get public IP and create sslip.io domain
+    PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+    SSLIP_DOMAIN=$(echo $PUBLIC_IP | tr '.' '-').sslip.io
+    
+    # Use custom domain if provided, otherwise use sslip.io
+    DOMAIN="${var.domain != "" ? var.domain : "$SSLIP_DOMAIN"}"
+    
+    # Generate secrets
+    JWT_SECRET=$(openssl rand -hex 32)
+    POSTGRES_PASSWORD=$(openssl rand -hex 16)
+    
+    # Create .env
+    cat > .env << ENVEOF
+POSTGRES_USER=wealthpath
+POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+POSTGRES_DB=wealthpath
+JWT_SECRET=$JWT_SECRET
+DOMAIN=$DOMAIN
+ALLOWED_ORIGINS=https://$DOMAIN,http://$DOMAIN
+ENVEOF
+    
+    # Start services with Docker Compose
+    docker compose -f docker-compose.prod.yaml up -d --build
+    
+    echo "WealthPath deployed successfully at https://$DOMAIN"
+  EOF
 
   root_block_device {
     volume_size = 20

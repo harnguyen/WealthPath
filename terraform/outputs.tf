@@ -10,6 +10,12 @@ locals {
       length(aws_eip.wealthpath) > 0 ? aws_eip.wealthpath[0].public_ip : null
     ) : null
   )
+  
+  # Auto-generate sslip.io domain from IP
+  sslip_domain = local.server_ip != null ? "${replace(local.server_ip, ".", "-")}.sslip.io" : null
+  
+  # Use custom domain if provided, otherwise sslip.io
+  app_domain = var.domain != "" ? var.domain : local.sslip_domain
 }
 
 output "server_ip" {
@@ -19,12 +25,17 @@ output "server_ip" {
 
 output "ssh_command" {
   description = "SSH command to connect"
-  value       = local.server_ip != null ? "ssh ${var.provider_choice == "aws" ? "ubuntu" : "root"}@${local.server_ip}" : null
+  value       = local.server_ip != null ? "ssh -i ~/.ssh/wealthpath_key ${var.provider_choice == "aws" ? "ubuntu" : "root"}@${local.server_ip}" : null
 }
 
 output "app_url" {
-  description = "Application URL"
-  value       = var.domain != "" ? "https://${var.domain}" : (local.server_ip != null ? "http://${local.server_ip}:3000" : null)
+  description = "Application URL (with SSL)"
+  value       = local.app_domain != null ? "https://${local.app_domain}" : null
+}
+
+output "app_domain" {
+  description = "Domain name for the app"
+  value       = local.app_domain
 }
 
 output "provider" {
@@ -40,18 +51,18 @@ output "next_steps" {
     
     Next steps:
     
-    1. Wait 2-3 minutes for setup to complete
+    1. Wait 3-5 minutes for Docker build to complete
     
     2. SSH into server:
-       ssh ${var.provider_choice == "aws" ? "ubuntu" : "root"}@${local.server_ip}
+       ssh -i ~/.ssh/wealthpath_key ${var.provider_choice == "aws" ? "ubuntu" : "root"}@${local.server_ip}
     
     3. Check deployment status:
        cat /var/log/wealthpath-setup.log
        ${var.provider_choice == "aws" ? "sudo " : ""}docker ps
     
-    4. Point your domain DNS A record to: ${local.server_ip}
+    4. Access your app: https://${local.app_domain}
     
-    5. Access your app: ${var.domain != "" ? "https://${var.domain}" : "http://${local.server_ip}:3000"}
+    ${var.domain != "" ? "Note: Make sure your domain DNS A record points to ${local.server_ip}" : "Using free SSL via sslip.io - no DNS setup needed!"}
     
   EOF
 }
