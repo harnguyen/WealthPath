@@ -58,10 +58,15 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-wealthpath}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-wealthpath}?sslmode=disable
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
+      FRONTEND_URL: ${FRONTEND_URL:-}
+      # Facebook OAuth
       FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
       FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
       FACEBOOK_REDIRECT_URI: ${FACEBOOK_REDIRECT_URI:-}
-      FRONTEND_URL: ${FRONTEND_URL:-}
+      # Google OAuth
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
       PORT: "8080"
     depends_on:
       flyway:

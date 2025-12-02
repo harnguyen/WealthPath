@@ -83,10 +83,10 @@ func main() {
 	r.Post("/api/auth/register", authHandler.Register)
 	r.Post("/api/auth/login", authHandler.Login)
 	
-	// OAuth routes
-	r.Get("/api/auth/facebook", oauthHandler.FacebookLogin)
-	r.Get("/api/auth/facebook/callback", oauthHandler.FacebookCallback)
-	r.Post("/api/auth/facebook/token", oauthHandler.FacebookLoginToken)
+	// OAuth routes - supports facebook, google, etc.
+	r.Get("/api/auth/{provider}", oauthHandler.OAuthLogin)
+	r.Get("/api/auth/{provider}/callback", oauthHandler.OAuthCallback)
+	r.Post("/api/auth/{provider}/token", oauthHandler.OAuthToken)
 
 	// Protected routes
 	r.Group(func(r chi.Router) {

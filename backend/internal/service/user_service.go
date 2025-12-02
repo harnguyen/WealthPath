@@ -2,12 +2,7 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
 	"os"
 	"time"
 
@@ -96,7 +91,6 @@ func (s *UserService) Login(ctx context.Context, input LoginInput) (*AuthRespons
 		return nil, err
 	}
 
-	// Check if user has a password (not OAuth-only user)
 	if user.PasswordHash == nil {
 		return nil, ErrInvalidCredentials
 	}
@@ -163,29 +157,38 @@ func ValidateToken(tokenString string) (uuid.UUID, error) {
 	return userID, nil
 }
 
-// FacebookLogin exchanges an authorization code for user info and logs in or registers
-func (s *UserService) FacebookLogin(ctx context.Context, code string) (*AuthResponse, error) {
-	// Exchange code for access token
-	accessToken, err := s.exchangeFacebookCode(code)
+// ============ GENERIC OAUTH ============
+
+// OAuthLogin handles OAuth login for any provider using authorization code
+func (s *UserService) OAuthLogin(ctx context.Context, providerName, code string) (*AuthResponse, error) {
+	provider, ok := OAuthProviders[providerName]
+	if !ok {
+		return nil, ErrOAuthFailed
+	}
+
+	accessToken, err := provider.ExchangeCode(code)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.FacebookLoginWithToken(ctx, accessToken)
+	return s.OAuthLoginWithToken(ctx, providerName, accessToken)
 }
 
-// FacebookLoginWithToken authenticates using a Facebook access token
-func (s *UserService) FacebookLoginWithToken(ctx context.Context, accessToken string) (*AuthResponse, error) {
-	// Get user info from Facebook
-	fbUser, err := s.getFacebookUser(accessToken)
+// OAuthLoginWithToken handles OAuth login using an access token
+func (s *UserService) OAuthLoginWithToken(ctx context.Context, providerName, accessToken string) (*AuthResponse, error) {
+	provider, ok := OAuthProviders[providerName]
+	if !ok {
+		return nil, ErrOAuthFailed
+	}
+
+	oauthUser, err := provider.GetUser(accessToken)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check if user already exists with this Facebook ID
-	user, err := s.repo.GetByOAuth(ctx, "facebook", fbUser.ID)
+	// Check if user exists with this OAuth ID
+	user, err := s.repo.GetByOAuth(ctx, providerName, oauthUser.ID)
 	if err == nil {
-		// User exists, generate token
 		token, err := generateToken(user.ID)
 		if err != nil {
 			return nil, err
@@ -193,16 +196,14 @@ func (s *UserService) FacebookLoginWithToken(ctx context.Context, accessToken st
 		return &AuthResponse{Token: token, User: user}, nil
 	}
 
-	// Check if email already exists (user registered with email/password)
-	if fbUser.Email != "" {
-		existingUser, err := s.repo.GetByEmail(ctx, fbUser.Email)
+	// Check if email exists (link accounts)
+	if oauthUser.Email != "" {
+		existingUser, err := s.repo.GetByEmail(ctx, oauthUser.Email)
 		if err == nil {
-			// Link Facebook to existing account
-			provider := "facebook"
-			existingUser.OAuthProvider = &provider
-			existingUser.OAuthID = &fbUser.ID
-			if fbUser.Picture.Data.URL != "" {
-				existingUser.AvatarURL = &fbUser.Picture.Data.URL
+			existingUser.OAuthProvider = &providerName
+			existingUser.OAuthID = &oauthUser.ID
+			if oauthUser.AvatarURL != "" {
+				existingUser.AvatarURL = &oauthUser.AvatarURL
 			}
 			if err := s.repo.Update(ctx, existingUser); err != nil {
 				return nil, err
@@ -216,16 +217,15 @@ func (s *UserService) FacebookLoginWithToken(ctx context.Context, accessToken st
 	}
 
 	// Create new user
-	provider := "facebook"
 	user = &model.User{
-		Email:         fbUser.Email,
-		Name:          fbUser.Name,
+		Email:         oauthUser.Email,
+		Name:          oauthUser.Name,
 		Currency:      "USD",
-		OAuthProvider: &provider,
-		OAuthID:       &fbUser.ID,
+		OAuthProvider: &providerName,
+		OAuthID:       &oauthUser.ID,
 	}
-	if fbUser.Picture.Data.URL != "" {
-		user.AvatarURL = &fbUser.Picture.Data.URL
+	if oauthUser.AvatarURL != "" {
+		user.AvatarURL = &oauthUser.AvatarURL
 	}
 
 	if err := s.repo.Create(ctx, user); err != nil {
@@ -240,83 +240,19 @@ func (s *UserService) FacebookLoginWithToken(ctx context.Context, accessToken st
 	return &AuthResponse{Token: token, User: user}, nil
 }
 
-type facebookUser struct {
-	ID      string `json:"id"`
-	Email   string `json:"email"`
-	Name    string `json:"name"`
-	Picture struct {
-		Data struct {
-			URL string `json:"url"`
-		} `json:"data"`
-	} `json:"picture"`
+// Legacy methods for backward compatibility
+func (s *UserService) FacebookLogin(ctx context.Context, code string) (*AuthResponse, error) {
+	return s.OAuthLogin(ctx, "facebook", code)
 }
 
-func (s *UserService) exchangeFacebookCode(code string) (string, error) {
-	clientID := os.Getenv("FACEBOOK_APP_ID")
-	clientSecret := os.Getenv("FACEBOOK_APP_SECRET")
-	redirectURI := os.Getenv("FACEBOOK_REDIRECT_URI")
-
-	tokenURL := fmt.Sprintf(
-		"https://graph.facebook.com/v18.0/oauth/access_token?client_id=%s&redirect_uri=%s&client_secret=%s&code=%s",
-		clientID, url.QueryEscape(redirectURI), clientSecret, code,
-	)
-
-	resp, err := http.Get(tokenURL)
-	if err != nil {
-		return "", ErrOAuthFailed
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", ErrOAuthFailed
-	}
-
-	var tokenResp struct {
-		AccessToken string `json:"access_token"`
-		Error       struct {
-			Message string `json:"message"`
-		} `json:"error"`
-	}
-
-	if err := json.Unmarshal(body, &tokenResp); err != nil {
-		return "", ErrOAuthFailed
-	}
-
-	if tokenResp.AccessToken == "" {
-		return "", ErrOAuthFailed
-	}
-
-	return tokenResp.AccessToken, nil
+func (s *UserService) FacebookLoginWithToken(ctx context.Context, accessToken string) (*AuthResponse, error) {
+	return s.OAuthLoginWithToken(ctx, "facebook", accessToken)
 }
 
-func (s *UserService) getFacebookUser(accessToken string) (*facebookUser, error) {
-	userURL := fmt.Sprintf(
-		"https://graph.facebook.com/me?fields=id,name,email,picture.type(large)&access_token=%s",
-		accessToken,
-	)
-
-	resp, err := http.Get(userURL)
-	if err != nil {
-		return nil, ErrOAuthFailed
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, ErrOAuthFailed
-	}
-
-	var fbUser facebookUser
-	if err := json.Unmarshal(body, &fbUser); err != nil {
-		return nil, ErrOAuthFailed
-	}
-
-	if fbUser.ID == "" {
-		return nil, ErrOAuthFailed
-	}
-
-	return &fbUser, nil
+func (s *UserService) GoogleLogin(ctx context.Context, code string) (*AuthResponse, error) {
+	return s.OAuthLogin(ctx, "google", code)
 }
 
-
+func (s *UserService) GoogleLoginWithToken(ctx context.Context, accessToken string) (*AuthResponse, error) {
+	return s.OAuthLoginWithToken(ctx, "google", accessToken)
+}

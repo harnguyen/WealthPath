@@ -3,8 +3,10 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"os"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/wealthpath/backend/internal/service"
 )
 
@@ -16,62 +18,55 @@ func NewOAuthHandler(userService *service.UserService) *OAuthHandler {
 	return &OAuthHandler{userService: userService}
 }
 
-// FacebookLogin initiates the Facebook OAuth flow
-func (h *OAuthHandler) FacebookLogin(w http.ResponseWriter, r *http.Request) {
-	clientID := os.Getenv("FACEBOOK_APP_ID")
-	redirectURI := os.Getenv("FACEBOOK_REDIRECT_URI")
-	
-	if clientID == "" || redirectURI == "" {
-		respondError(w, http.StatusInternalServerError, "Facebook OAuth not configured")
+// OAuthLogin initiates OAuth flow for any provider
+func (h *OAuthHandler) OAuthLogin(w http.ResponseWriter, r *http.Request) {
+	providerName := chi.URLParam(r, "provider")
+	provider, ok := service.OAuthProviders[providerName]
+	if !ok {
+		respondError(w, http.StatusBadRequest, "unsupported provider")
 		return
 	}
 
-	// Redirect to Facebook OAuth
-	authURL := "https://www.facebook.com/v18.0/dialog/oauth?" +
-		"client_id=" + clientID +
-		"&redirect_uri=" + redirectURI +
-		"&scope=email,public_profile" +
-		"&response_type=code"
+	authURL := provider.AuthURL()
+	if authURL == "" {
+		respondError(w, http.StatusInternalServerError, providerName+" OAuth not configured")
+		return
+	}
 
 	http.Redirect(w, r, authURL, http.StatusTemporaryRedirect)
 }
 
-// FacebookCallback handles the OAuth callback from Facebook
-func (h *OAuthHandler) FacebookCallback(w http.ResponseWriter, r *http.Request) {
+// OAuthCallback handles callback from any OAuth provider
+func (h *OAuthHandler) OAuthCallback(w http.ResponseWriter, r *http.Request) {
+	providerName := chi.URLParam(r, "provider")
 	code := r.URL.Query().Get("code")
-	if code == "" {
-		// Handle error - redirect to frontend with error
-		frontendURL := os.Getenv("FRONTEND_URL")
-		if frontendURL == "" {
-			frontendURL = "http://localhost:3000"
-		}
-		http.Redirect(w, r, frontendURL+"/login?error=oauth_failed", http.StatusTemporaryRedirect)
-		return
-	}
-
-	// Exchange code for user info and login/register
-	resp, err := h.userService.FacebookLogin(r.Context(), code)
-	if err != nil {
-		frontendURL := os.Getenv("FRONTEND_URL")
-		if frontendURL == "" {
-			frontendURL = "http://localhost:3000"
-		}
-		http.Redirect(w, r, frontendURL+"/login?error="+err.Error(), http.StatusTemporaryRedirect)
-		return
-	}
-
-	// Redirect to frontend with token
+	
 	frontendURL := os.Getenv("FRONTEND_URL")
 	if frontendURL == "" {
 		frontendURL = "http://localhost:3000"
 	}
+
+	if code == "" {
+		http.Redirect(w, r, frontendURL+"/login?error=oauth_failed", http.StatusTemporaryRedirect)
+		return
+	}
+
+	resp, err := h.userService.OAuthLogin(r.Context(), providerName, code)
+	if err != nil {
+		http.Redirect(w, r, frontendURL+"/login?error="+url.QueryEscape(err.Error()), http.StatusTemporaryRedirect)
+		return
+	}
+
 	http.Redirect(w, r, frontendURL+"/login?token="+resp.Token, http.StatusTemporaryRedirect)
 }
 
-// FacebookLoginToken handles token-based Facebook login (for frontend SDK)
-func (h *OAuthHandler) FacebookLoginToken(w http.ResponseWriter, r *http.Request) {
+// OAuthToken handles token-based OAuth login (for frontend SDKs)
+func (h *OAuthHandler) OAuthToken(w http.ResponseWriter, r *http.Request) {
+	providerName := chi.URLParam(r, "provider")
+	
 	var input struct {
 		AccessToken string `json:"accessToken"`
+		IDToken     string `json:"idToken"` // For Google
 	}
 	
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -79,12 +74,16 @@ func (h *OAuthHandler) FacebookLoginToken(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if input.AccessToken == "" {
+	token := input.AccessToken
+	if token == "" {
+		token = input.IDToken
+	}
+	if token == "" {
 		respondError(w, http.StatusBadRequest, "access token is required")
 		return
 	}
 
-	resp, err := h.userService.FacebookLoginWithToken(r.Context(), input.AccessToken)
+	resp, err := h.userService.OAuthLoginWithToken(r.Context(), providerName, token)
 	if err != nil {
 		respondError(w, http.StatusUnauthorized, err.Error())
 		return
@@ -92,4 +91,3 @@ func (h *OAuthHandler) FacebookLoginToken(w http.ResponseWriter, r *http.Request
 
 	respondJSON(w, http.StatusOK, resp)
 }
-
