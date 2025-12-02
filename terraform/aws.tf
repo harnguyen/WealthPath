@@ -124,7 +124,31 @@ resource "aws_instance" "wealthpath" {
     SSLIP_DOMAIN=$(echo $PUBLIC_IP | tr '.' '-').sslip.io
     
     # Use custom domain if provided, otherwise use sslip.io
-    DOMAIN="${var.domain != "" ? var.domain : "$SSLIP_DOMAIN"}"
+    CUSTOM_DOMAIN="${var.domain}"
+    USE_SSL="${var.use_ssl}"
+    
+    if [ -n "$CUSTOM_DOMAIN" ]; then
+      DOMAIN="$CUSTOM_DOMAIN"
+    else
+      DOMAIN="$SSLIP_DOMAIN"
+    fi
+    
+    # Determine protocol
+    if [ "$USE_SSL" = "true" ]; then
+      PROTOCOL="https"
+      CADDY_DOMAIN="$DOMAIN"
+    else
+      PROTOCOL="http"
+      CADDY_DOMAIN="http://$DOMAIN"
+    fi
+    
+    # Create Caddyfile
+    cat > Caddyfile << CADDYEOF
+$CADDY_DOMAIN {
+    reverse_proxy /api/* backend:8080
+    reverse_proxy /* frontend:3000
+}
+CADDYEOF
     
     # Generate secrets
     JWT_SECRET=$(openssl rand -hex 32)
@@ -137,15 +161,15 @@ POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 POSTGRES_DB=wealthpath
 JWT_SECRET=$JWT_SECRET
 DOMAIN=$DOMAIN
-FRONTEND_URL=https://$DOMAIN
-ALLOWED_ORIGINS=https://$DOMAIN,http://$DOMAIN
+FRONTEND_URL=$PROTOCOL://$DOMAIN
+ALLOWED_ORIGINS=$PROTOCOL://$DOMAIN
 ENVEOF
     
     # Pull and run pre-built images (no build on server)
     docker compose -f docker-compose.deploy.yaml pull
     docker compose -f docker-compose.deploy.yaml up -d
     
-    echo "WealthPath deployed successfully at https://$DOMAIN"
+    echo "WealthPath deployed successfully at $PROTOCOL://$DOMAIN"
   EOF
 
   root_block_device {

@@ -53,9 +53,15 @@ variable "ssh_public_key" {
 }
 
 variable "domain" {
-  description = "Domain name for the app"
+  description = "Domain name for the app (e.g., wealthpath.duckdns.org)"
   type        = string
   default     = ""
+}
+
+variable "use_ssl" {
+  description = "Enable HTTPS/SSL (set false for domains with DNS issues)"
+  type        = bool
+  default     = true
 }
 
 variable "region" {

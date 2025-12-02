@@ -18,8 +18,13 @@ aws_instance_type = "t3.micro"  # t3.micro = free tier, t3.small = $15/mo
 # Your SSH public key (cat ~/.ssh/id_rsa.pub or cat ~/.ssh/id_ed25519.pub)
 ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC..."
 
-# Your domain (optional - leave empty to use IP)
+# Your domain (optional - leave empty to use sslip.io auto-domain)
+# Examples: wealthpath.duckdns.org, myapp.example.com
 domain = ""
+
+# Use SSL/HTTPS (default: true)
+# Set to false for domains with DNS/SSL issues (e.g., DuckDNS)
+use_ssl = true
 
 # Region (for DO/Hetzner only, AWS uses aws_region)
 # DigitalOcean: nyc1, nyc3, sfo1, sfo3, ams3, sgp1, lon1, fra1, tor1, blr1

@@ -1,10 +1,10 @@
 "use client"
 
+import { AIChat } from "@/components/chat/ai-chat"
+import { Sidebar } from "@/components/layout/sidebar"
+import { useAuthStore } from "@/store/auth"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useAuthStore } from "@/store/auth"
-import { Sidebar } from "@/components/layout/sidebar"
-import { AIChat } from "@/components/chat/ai-chat"
 
 export default function DashboardLayout({
   children,
