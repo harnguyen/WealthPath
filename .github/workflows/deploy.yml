@@ -26,5 +26,42 @@ jobs:
             sudo docker compose -f docker-compose.deploy.yaml pull
             sudo docker compose -f docker-compose.deploy.yaml up -d
             sudo docker image prune -f
-            echo "✅ Deployed at $(date)"
+            
+            echo "⏳ Waiting for services to start..."
+            sleep 10
+            
+            echo "📊 Container Status:"
+            sudo docker compose -f docker-compose.deploy.yaml ps
+            
+            echo ""
+            echo "🔍 Health Checks:"
+            
+            # Check backend health
+            if curl -sf http://localhost:8080/api/health > /dev/null 2>&1; then
+              echo "✅ Backend: healthy"
+            else
+              echo "❌ Backend: unhealthy"
+              sudo docker logs wealthpath-backend-1 --tail 20
+              exit 1
+            fi
+            
+            # Check frontend
+            if curl -sf http://localhost:3000 > /dev/null 2>&1; then
+              echo "✅ Frontend: healthy"
+            else
+              echo "❌ Frontend: unhealthy"
+              sudo docker logs wealthpath-frontend-1 --tail 20
+              exit 1
+            fi
+            
+            # Check postgres
+            if sudo docker exec wealthpath-postgres-1 pg_isready -U wealthpath > /dev/null 2>&1; then
+              echo "✅ Postgres: healthy"
+            else
+              echo "❌ Postgres: unhealthy"
+              exit 1
+            fi
+            
+            echo ""
+            echo "✅ Deployment successful at $(date)"
 
