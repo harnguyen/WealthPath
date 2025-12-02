@@ -39,6 +39,7 @@ services:
       FLYWAY_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-wealthpath}
       FLYWAY_USER: ${POSTGRES_USER:-wealthpath}
       FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
       FLYWAY_CONNECT_RETRIES: 10
       FLYWAY_BASELINE_ON_MIGRATE: "true"
     depends_on:
