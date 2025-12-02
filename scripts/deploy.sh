@@ -1,21 +1,21 @@
 #!/bin/bash
-# Deploy/update WealthPath
-# Run from /opt/wealthpath
-
 set -e
 
 echo "🚀 Deploying WealthPath..."
 
-# Pull latest changes
+cd /opt/wealthpath
+
+# Pull latest code (for compose file and Caddyfile updates)
 git pull origin main
 
-# Rebuild and restart
-docker compose -f docker-compose.prod.yaml down
-docker compose -f docker-compose.prod.yaml up --build -d
+# Pull latest images
+echo "📦 Pulling latest images..."
+docker compose -f docker-compose.deploy.yaml pull
+
+# Restart services
+echo "🔄 Restarting services..."
+docker compose -f docker-compose.deploy.yaml up -d
 
 # Show status
-echo ""
 echo "✅ Deployment complete!"
-docker compose -f docker-compose.prod.yaml ps
-
-
+docker compose -f docker-compose.deploy.yaml ps

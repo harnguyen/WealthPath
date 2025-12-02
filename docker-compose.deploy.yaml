@@ -1,0 +1,85 @@
+# Production deployment - pulls pre-built images from GitHub Container Registry
+# Usage: docker compose -f docker-compose.deploy.yaml up -d
+
+services:
+  caddy:
+    image: caddy:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+    restart: always
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-wealthpath}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-wealthpath}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wealthpath}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  flyway:
+    image: ghcr.io/thanhhungg97/wealthpath-migrations:latest
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-wealthpath}
+      FLYWAY_USER: ${POSTGRES_USER:-wealthpath}
+      FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
+      FLYWAY_CONNECT_RETRIES: 10
+      FLYWAY_BASELINE_ON_MIGRATE: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    image: ghcr.io/thanhhungg97/wealthpath-backend:latest
+    expose:
+      - "8080"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-wealthpath}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-wealthpath}?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
+      FACEBOOK_REDIRECT_URI: ${FACEBOOK_REDIRECT_URI:-}
+      FRONTEND_URL: ${FRONTEND_URL:-}
+      PORT: "8080"
+    depends_on:
+      flyway:
+        condition: service_completed_successfully
+    restart: always
+
+  frontend:
+    image: ghcr.io/thanhhungg97/wealthpath-frontend:latest
+    expose:
+      - "3000"
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+

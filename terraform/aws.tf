@@ -137,11 +137,13 @@ POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 POSTGRES_DB=wealthpath
 JWT_SECRET=$JWT_SECRET
 DOMAIN=$DOMAIN
+FRONTEND_URL=https://$DOMAIN
 ALLOWED_ORIGINS=https://$DOMAIN,http://$DOMAIN
 ENVEOF
     
-    # Start services with Docker Compose
-    docker compose -f docker-compose.prod.yaml up -d --build
+    # Pull and run pre-built images (no build on server)
+    docker compose -f docker-compose.deploy.yaml pull
+    docker compose -f docker-compose.deploy.yaml up -d
     
     echo "WealthPath deployed successfully at https://$DOMAIN"
   EOF
