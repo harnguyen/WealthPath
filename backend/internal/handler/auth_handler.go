@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/wealthpath/backend/internal/service"
 )
 
@@ -63,12 +64,12 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r.Context())
-	if userID == nil {
+	if userID == uuid.Nil {
 		respondError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 
-	user, err := h.userService.GetByID(r.Context(), *userID)
+	user, err := h.userService.GetByID(r.Context(), userID)
 	if err != nil {
 		respondError(w, http.StatusNotFound, "user not found")
 		return
