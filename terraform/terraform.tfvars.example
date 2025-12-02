@@ -23,8 +23,14 @@ ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC..."
 domain = ""
 
 # Use SSL/HTTPS (default: true)
-# Set to false for domains with DNS/SSL issues (e.g., DuckDNS)
 use_ssl = true
+
+# Use ZeroSSL instead of Let's Encrypt (recommended for DuckDNS domains)
+# ZeroSSL has better DNS resolution for some free DNS providers
+use_zerossl = false
+
+# Admin email for SSL certificate registration (required if use_zerossl = true)
+admin_email = "your-email@example.com"
 
 # Region (for DO/Hetzner only, AWS uses aws_region)
 # DigitalOcean: nyc1, nyc3, sfo1, sfo3, ams3, sgp1, lon1, fra1, tor1, blr1

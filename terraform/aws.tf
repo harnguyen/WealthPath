@@ -123,9 +123,11 @@ resource "aws_instance" "wealthpath" {
     PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
     SSLIP_DOMAIN=$(echo $PUBLIC_IP | tr '.' '-').sslip.io
     
-    # Use custom domain if provided, otherwise use sslip.io
+    # Configuration from Terraform
     CUSTOM_DOMAIN="${var.domain}"
     USE_SSL="${var.use_ssl}"
+    USE_ZEROSSL="${var.use_zerossl}"
+    ADMIN_EMAIL="${var.admin_email}"
     
     if [ -n "$CUSTOM_DOMAIN" ]; then
       DOMAIN="$CUSTOM_DOMAIN"
@@ -142,13 +144,27 @@ resource "aws_instance" "wealthpath" {
       CADDY_DOMAIN="http://$DOMAIN"
     fi
     
-    # Create Caddyfile
-    cat > Caddyfile << CADDYEOF
+    # Create Caddyfile with optional ZeroSSL
+    if [ "$USE_ZEROSSL" = "true" ] && [ "$USE_SSL" = "true" ]; then
+      cat > Caddyfile << CADDYEOF
+{
+    acme_ca https://acme.zerossl.com/v2/DV90
+    email $ADMIN_EMAIL
+}
+
 $CADDY_DOMAIN {
     reverse_proxy /api/* backend:8080
     reverse_proxy /* frontend:3000
 }
 CADDYEOF
+    else
+      cat > Caddyfile << CADDYEOF
+$CADDY_DOMAIN {
+    reverse_proxy /api/* backend:8080
+    reverse_proxy /* frontend:3000
+}
+CADDYEOF
+    fi
     
     # Generate secrets
     JWT_SECRET=$(openssl rand -hex 32)

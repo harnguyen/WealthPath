@@ -64,6 +64,18 @@ variable "use_ssl" {
   default     = true
 }
 
+variable "use_zerossl" {
+  description = "Use ZeroSSL instead of Let's Encrypt (better for DuckDNS)"
+  type        = bool
+  default     = false
+}
+
+variable "admin_email" {
+  description = "Admin email for SSL certificate registration"
+  type        = string
+  default     = "admin@example.com"
+}
+
 variable "region" {
   description = "Region for deployment"
   type        = string
