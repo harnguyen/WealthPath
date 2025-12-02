@@ -21,9 +21,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /opt/wealthpath
-            git pull origin main
-            docker compose -f docker-compose.deploy.yaml pull
-            docker compose -f docker-compose.deploy.yaml up -d
-            docker image prune -f
+            sudo git config --global --add safe.directory /opt/wealthpath
+            sudo git pull origin main
+            sudo docker compose -f docker-compose.deploy.yaml pull
+            sudo docker compose -f docker-compose.deploy.yaml up -d
+            sudo docker image prune -f
             echo "✅ Deployed at $(date)"
 
