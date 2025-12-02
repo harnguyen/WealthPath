@@ -1,6 +1,6 @@
 module github.com/wealthpath/backend
 
-go 1.22
+go 1.24.0
 
 require (
 	github.com/go-chi/chi/v5 v5.1.0
@@ -10,6 +10,5 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.10.9
 	github.com/shopspring/decimal v1.4.0
-	golang.org/x/crypto v0.28.0
+	golang.org/x/crypto v0.45.0
 )
-
