@@ -22,11 +22,13 @@ if ! command -v gh &> /dev/null; then
 fi
 
 # Check if authenticated
-if ! gh auth status &> /dev/null; then
+if ! gh auth status 2>&1 | grep -q "Logged in"; then
     echo "❌ Not authenticated with GitHub CLI."
     echo "   Run: gh auth login"
     exit 1
 fi
+
+echo "✓ Authenticated with GitHub CLI"
 
 echo "Enter your secrets (press Enter to skip optional ones):"
 echo ""
