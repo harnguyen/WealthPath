@@ -162,7 +162,7 @@
           - "{{ compose_file }}"
         pull: always
         state: present
-      become_user: ubuntu
+      # Run as root since ubuntu user needs re-login for docker group
 
     - name: Start services
       community.docker.docker_compose_v2:
@@ -170,7 +170,6 @@
         files:
           - "{{ compose_file }}"
         state: present
-      become_user: ubuntu
       register: compose_result
 
     # ============================================
