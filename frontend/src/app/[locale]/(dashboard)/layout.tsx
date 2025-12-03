@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = 'force-dynamic'
+
 import { AIChat } from "@/components/chat/ai-chat"
 import { Sidebar } from "@/components/layout/sidebar"
 import { useAuthStore } from "@/store/auth"
