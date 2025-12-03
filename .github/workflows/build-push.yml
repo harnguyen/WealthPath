@@ -1,5 +1,8 @@
 name: Build and Push Docker Images
 
+# This workflow builds images on pushes to main for development/staging
+# For production releases, use the Release workflow by creating a tag
+
 on:
   push:
     branches: [main]

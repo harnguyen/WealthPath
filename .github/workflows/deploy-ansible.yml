@@ -1,16 +1,15 @@
-name: Deploy with Ansible
+name: Deploy (Manual)
+
+# Manual deployment workflow - use for hotfixes or re-deployments
+# For normal releases, create a tag (v1.0.0) to trigger the Release workflow
 
 on:
-  workflow_run:
-    workflows: ["Build and Push Docker Images"]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
     inputs:
-      domain:
-        description: 'Domain (leave empty for auto)'
+      version:
+        description: 'Image tag to deploy (e.g., v1.0.0 or latest)'
         required: false
-        default: ''
+        default: 'latest'
 
 permissions:
   contents: read
@@ -18,7 +17,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    environment: production
     
     steps:
       - uses: actions/checkout@v4
@@ -44,12 +43,14 @@ jobs:
         working-directory: ansible
         env:
           SERVER_IP: ${{ secrets.SERVER_IP }}
-          DOMAIN: ${{ github.event.inputs.domain || secrets.DOMAIN }}
+          DOMAIN: ${{ secrets.DOMAIN }}
           USE_SSL: "true"
           USE_ZEROSSL: "true"
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
           ANSIBLE_HOST_KEY_CHECKING: "False"
+          IMAGE_TAG: ${{ github.event.inputs.version }}
         run: |
+          echo "🚀 Deploying version $IMAGE_TAG"
           ansible-playbook playbook.yml -v
       
       - name: Health check
