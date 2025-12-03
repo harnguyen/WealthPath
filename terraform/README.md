@@ -1,13 +1,17 @@
-# WealthPath Terraform Infrastructure
+# WealthPath Terraform (AWS)
 
-Deploy WealthPath to DigitalOcean or Hetzner Cloud with one command.
+Deploy WealthPath to AWS EC2 with a single command.
 
 ## Prerequisites
 
-1. [Terraform](https://www.terraform.io/downloads) installed
-2. Account on [DigitalOcean](https://digitalocean.com) or [Hetzner](https://hetzner.cloud)
-3. API token from your provider
-4. SSH key pair (`ssh-keygen -t rsa -b 4096`)
+1. [Terraform](https://terraform.io/downloads) installed
+2. AWS credentials configured:
+   ```bash
+   aws configure
+   # Or export environment variables:
+   export AWS_ACCESS_KEY_ID="xxx"
+   export AWS_SECRET_ACCESS_KEY="xxx"
+   ```
 
 ## Quick Start
 
@@ -16,78 +20,42 @@ cd terraform
 
 # Copy and edit variables
 cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your values
+# Edit terraform.tfvars with your SSH key and preferences
 
-# Initialize Terraform
+# Deploy
 terraform init
-
-# Preview changes
-terraform plan
-
-# Deploy!
 terraform apply
 ```
 
 ## Configuration
 
-Edit `terraform.tfvars`:
-
-| Variable | Description | Example |
+| Variable | Description | Default |
 |----------|-------------|---------|
-| `provider_choice` | `digitalocean` or `hetzner` | `digitalocean` |
-| `do_token` | DigitalOcean API token | `dop_v1_xxx` |
-| `hcloud_token` | Hetzner API token | `xxx` |
-| `ssh_public_key` | Your SSH public key | `ssh-rsa AAAA...` |
-| `domain` | Your domain (optional) | `app.example.com` |
-| `region` | Server region | `nyc1` |
+| `aws_region` | AWS region | `us-east-1` |
+| `aws_instance_type` | EC2 instance type | `t3.small` |
+| `ssh_public_key` | Your SSH public key | Required |
+| `domain` | Custom domain (optional) | Auto sslip.io |
+| `use_ssl` | Enable HTTPS | `true` |
+| `use_zerossl` | Use ZeroSSL (for DuckDNS) | `false` |
+| `admin_email` | Email for SSL certs | Required if ZeroSSL |
 
-## Costs
+## Instance Types
 
-| Provider | Spec | Cost |
-|----------|------|------|
-| Hetzner CX11 | 1 vCPU, 2GB RAM | €4.51/mo |
-| DigitalOcean | 1 vCPU, 1GB RAM | $6/mo |
-| DigitalOcean | 1 vCPU, 2GB RAM | $12/mo |
+| Type | RAM | Cost | Use Case |
+|------|-----|------|----------|
+| `t3.micro` | 1GB | Free tier | Testing |
+| `t3.small` | 2GB | ~$15/mo | Production (recommended) |
+| `t3.medium` | 4GB | ~$30/mo | High traffic |
 
-## Commands
+## Outputs
+
+After `terraform apply`:
+- `server_ip` - EC2 public IP
+- `ssh_command` - SSH connection command
+- `app_url` - Application URL
+
+## Destroy
 
 ```bash
-# Deploy
-terraform apply
-
-# Destroy
 terraform destroy
-
-# Show outputs
-terraform output
-
-# SSH to server
-ssh root@$(terraform output -raw server_ip)
 ```
-
-## What Gets Deployed
-
-1. **VPS** with Ubuntu 22.04
-2. **Docker** + Docker Compose
-3. **Caddy** for SSL/reverse proxy
-4. **WealthPath** app (auto-cloned and started)
-5. **Firewall** rules (22, 80, 443)
-
-## After Deployment
-
-1. Wait 2-3 minutes for setup to complete
-2. Point your domain's DNS A record to the server IP
-3. Access your app at `https://your-domain.com`
-
-## Updating the App
-
-SSH into server and run:
-
-```bash
-cd /opt/wealthpath
-git pull
-docker compose -f docker-compose.prod.yaml up --build -d
-```
-
-
-

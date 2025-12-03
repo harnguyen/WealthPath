@@ -2,14 +2,6 @@
 
 provider "aws" {
   region = var.aws_region
-  
-  # Use credentials from ~/.aws/credentials or environment variables
-  # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
-  
-  # Skip validation if not using AWS
-  skip_credentials_validation = var.provider_choice != "aws"
-  skip_requesting_account_id  = var.provider_choice != "aws"
-  skip_metadata_api_check     = var.provider_choice != "aws"
 }
 
 variable "aws_region" {
@@ -21,12 +13,11 @@ variable "aws_region" {
 variable "aws_instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "t3.small"  # 2GB RAM needed for Next.js build
+  default     = "t3.small"
 }
 
 # Get latest Ubuntu 22.04 AMI
 data "aws_ami" "ubuntu" {
-  count       = var.provider_choice == "aws" ? 1 : 0
   most_recent = true
 
   filter {
@@ -44,14 +35,12 @@ data "aws_ami" "ubuntu" {
 
 # SSH Key Pair
 resource "aws_key_pair" "wealthpath" {
-  count      = var.provider_choice == "aws" ? 1 : 0
   key_name   = var.ssh_key_name
   public_key = var.ssh_public_key
 }
 
 # Security Group
 resource "aws_security_group" "wealthpath" {
-  count       = var.provider_choice == "aws" ? 1 : 0
   name        = "${local.app_name}-sg"
   description = "Security group for WealthPath"
 
@@ -94,11 +83,10 @@ resource "aws_security_group" "wealthpath" {
 
 # EC2 Instance
 resource "aws_instance" "wealthpath" {
-  count                  = var.provider_choice == "aws" ? 1 : 0
-  ami                    = data.aws_ami.ubuntu[0].id
+  ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.aws_instance_type
-  key_name               = aws_key_pair.wealthpath[0].key_name
-  vpc_security_group_ids = [aws_security_group.wealthpath[0].id]
+  key_name               = aws_key_pair.wealthpath.key_name
+  vpc_security_group_ids = [aws_security_group.wealthpath.id]
 
   user_data = <<-EOF
     #!/bin/bash
@@ -181,7 +169,7 @@ FRONTEND_URL=$PROTOCOL://$DOMAIN
 ALLOWED_ORIGINS=$PROTOCOL://$DOMAIN
 ENVEOF
     
-    # Pull and run pre-built images (no build on server)
+    # Pull and run pre-built images
     docker compose -f docker-compose.deploy.yaml pull
     docker compose -f docker-compose.deploy.yaml up -d
     
@@ -198,14 +186,12 @@ ENVEOF
   }
 }
 
-# Elastic IP (optional but recommended)
+# Elastic IP
 resource "aws_eip" "wealthpath" {
-  count    = var.provider_choice == "aws" ? 1 : 0
-  instance = aws_instance.wealthpath[0].id
+  instance = aws_instance.wealthpath.id
   domain   = "vpc"
 
   tags = {
     Name = "${local.app_name}-eip"
   }
 }
-
