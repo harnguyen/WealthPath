@@ -1,11 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import {
   ArrowUpDown,
   Calculator,
   CreditCard,
   LayoutDashboard,
   LogOut,
+  Menu,
   PiggyBank,
   RefreshCw,
   Settings,
@@ -20,12 +22,14 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/store/auth"
 import { usePathname } from "next/navigation"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
 export function Sidebar() {
   const pathname = usePathname()
   const locale = useLocale()
   const t = useTranslations()
   const { user, logout } = useAuthStore()
+  const [open, setOpen] = useState(false)
 
   const navigation = [
     { name: t('dashboard.title'), href: `/${locale}/dashboard`, icon: LayoutDashboard, key: 'dashboard' },
@@ -37,8 +41,8 @@ export function Sidebar() {
     { name: t('calculator.title'), href: `/${locale}/calculator`, icon: Calculator, key: 'calculator' },
   ]
 
-  return (
-    <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r flex flex-col">
+  const SidebarContent = () => (
+    <>
       {/* Logo */}
       <div className="h-16 flex items-center gap-3 px-6 border-b">
         <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
@@ -48,13 +52,14 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navigation.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
           return (
             <Link
               key={item.key}
               href={item.href}
+              onClick={() => setOpen(false)}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all",
                 isActive
@@ -85,7 +90,7 @@ export function Sidebar() {
         </div>
         <div className="flex gap-2">
           <Button variant="ghost" size="sm" className="flex-1" asChild>
-            <Link href={`/${locale}/settings`}>
+            <Link href={`/${locale}/settings`} onClick={() => setOpen(false)}>
               <Settings className="w-4 h-4 mr-2" />
               {t('settings.title')}
             </Link>
@@ -95,8 +100,35 @@ export function Sidebar() {
           </Button>
         </div>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 bg-card border-b flex items-center justify-between px-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
+            <TrendingUp className="w-5 h-5 text-white" />
+          </div>
+          <span className="font-display font-bold text-xl gradient-text">WealthPath</span>
+        </div>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu className="w-6 h-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-64 p-0 flex flex-col">
+            <SidebarContent />
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex fixed inset-y-0 left-0 z-50 w-64 bg-card border-r flex-col">
+        <SidebarContent />
+      </aside>
+    </>
   )
 }
-
-

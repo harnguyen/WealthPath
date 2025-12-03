@@ -31,8 +31,9 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <main className="pl-64">
-        <div className="p-8">{children}</div>
+      {/* pt-16 on mobile for fixed header, lg:pt-0 lg:pl-64 for desktop sidebar */}
+      <main className="pt-16 lg:pt-0 lg:pl-64">
+        <div className="p-4 md:p-6 lg:p-8">{children}</div>
       </main>
       <AIChat />
     </div>
