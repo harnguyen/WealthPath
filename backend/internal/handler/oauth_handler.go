@@ -29,7 +29,7 @@ func (h *OAuthHandler) OAuthLogin(w http.ResponseWriter, r *http.Request) {
 
 	authURL := provider.AuthURL()
 	if authURL == "" {
-		respondError(w, http.StatusInternalServerError, providerName+" OAuth not configured")
+		respondError(w, http.StatusServiceUnavailable, providerName+" OAuth is not configured. Please set "+providerName+" OAuth credentials in environment variables.")
 		return
 	}
 
