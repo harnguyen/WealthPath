@@ -19,11 +19,33 @@ ansible-galaxy install -r requirements.yml
 cd ansible
 
 # Set your server IP (or edit inventory.yml)
-export SERVER_IP="13.228.119.0"
+export SERVER_IP="52.220.155.187"
 
 # Deploy
-ansible-playbook playbook.yml
+ansible-playbook playbook.yml --ask-vault-pass
 ```
+
+## Playbooks
+
+### Main Deployment (`playbook.yml`)
+Regular deployment playbook - use this for normal deployments.
+
+```bash
+ansible-playbook playbook.yml --ask-vault-pass
+```
+
+### Database Migration (`migrate-db-playbook.yml`)
+**One-time only** - Migrates data from Docker PostgreSQL to host PostgreSQL.
+
+```bash
+# Run BEFORE main playbook if migrating
+ansible-playbook migrate-db-playbook.yml --ask-vault-pass
+```
+
+**When to use:**
+- First time moving from Docker PostgreSQL to host PostgreSQL
+- Only needed once per server
+- Run before the main deployment playbook
 
 ## Configuration
 
@@ -135,28 +157,56 @@ ansible wealthpath -m shell -a "docker compose -f /opt/wealthpath/docker-compose
 ansible wealthpath -m shell -a "docker compose -f /opt/wealthpath/docker-compose.deploy.yaml restart"
 ```
 
+## When to Split Playbooks
+
+Split playbooks when tasks have different:
+
+| Criteria | Example | Split? |
+|----------|---------|--------|
+| **Frequency** | One-time migration vs regular deployment | ✅ Yes |
+| **Purpose** | Setup vs maintenance vs backup | ✅ Yes |
+| **Scope** | Full deployment vs partial update | ✅ Yes |
+| **Environment** | Dev vs staging vs production | ✅ Yes |
+| **Dependencies** | Requires different prerequisites | ✅ Yes |
+
+### Examples
+
+**✅ Split into separate playbook:**
+- Database migration (one-time)
+- Backup/restore operations
+- Security updates
+- Disaster recovery
+
+**❌ Keep in main playbook:**
+- Regular deployment tasks
+- Configuration updates
+- Service restarts
+- Health checks
+
 ## File Structure
 
 ```
 ansible/
-├── ansible.cfg          # Ansible configuration
-├── inventory.yml        # Host and variable definitions
-├── playbook.yml         # Main deployment playbook (orchestrates tasks)
-├── requirements.yml     # Galaxy dependencies
-├── secrets.yml          # 🔒 Encrypted secrets (git-ignored)
-├── secrets.yml.example  # Template for secrets
-├── tasks/               # Modular task files
-│   ├── system.yml      # System setup and packages
-│   ├── docker.yml      # Docker installation
-│   ├── postgresql.yml  # PostgreSQL setup
-│   ├── app.yml         # Application directory and git
-│   ├── config.yml      # Domain, secrets, .env generation
-│   ├── deploy.yml      # Docker Compose deployment
-│   └── health.yml       # Health checks
+├── ansible.cfg              # Ansible configuration
+├── inventory.yml            # Host and variable definitions
+├── playbook.yml             # Main deployment playbook (regular use)
+├── migrate-db-playbook.yml  # One-time database migration
+├── requirements.yml         # Galaxy dependencies
+├── secrets.yml              # 🔒 Encrypted secrets (git-ignored)
+├── secrets.yml.example      # Template for secrets
+├── tasks/                   # Modular task files
+│   ├── system.yml          # System setup and packages
+│   ├── docker.yml          # Docker installation
+│   ├── postgresql.yml      # PostgreSQL setup
+│   ├── migrate-db.yml      # Database migration tasks
+│   ├── app.yml             # Application directory and git
+│   ├── config.yml          # Domain, secrets, .env generation
+│   ├── deploy.yml          # Docker Compose deployment
+│   └── health.yml          # Health checks
 ├── handlers/
-│   └── main.yml        # Handler definitions (for reference)
+│   └── main.yml            # Handler definitions (for reference)
 ├── templates/
-│   └── env.j2          # .env file template
+│   └── env.j2              # .env file template
 └── README.md
 ```
 

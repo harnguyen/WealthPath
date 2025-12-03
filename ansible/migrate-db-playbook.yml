@@ -1,0 +1,60 @@
+---
+# Database Migration Playbook
+# One-time migration from Docker PostgreSQL to host PostgreSQL
+# 
+# Usage: ansible-playbook migrate-db-playbook.yml
+# With vault: ansible-playbook migrate-db-playbook.yml --ask-vault-pass
+#
+# This playbook should be run BEFORE the main deployment playbook
+# if you're migrating from Docker PostgreSQL to host PostgreSQL.
+
+- name: Migrate Database from Docker to Host
+  hosts: wealthpath
+  become: yes
+  
+  vars:
+    docker_compose_version: "2.24.0"
+  
+  pre_tasks:
+    - name: Check if secrets.yml exists
+      local_action: stat path=secrets.yml
+      register: secrets_file
+      become: no
+
+    - name: Include secrets if available
+      include_vars: secrets.yml
+      when: secrets_file.stat.exists
+      no_log: true
+
+  tasks:
+    # Docker must be installed to access Docker PostgreSQL
+    - name: Check if Docker is installed
+      command: which docker
+      register: docker_check
+      changed_when: false
+      failed_when: false
+
+    - name: Fail if Docker is not installed
+      fail:
+        msg: "Docker must be installed to migrate from Docker PostgreSQL"
+      when: docker_check.rc != 0
+
+    # Run migration tasks
+    - name: Database Migration
+      import_tasks: tasks/migrate-db.yml
+
+    - name: Display migration completion
+      debug:
+        msg: |
+          
+          ✅ Database migration completed!
+          
+          Next steps:
+          1. Run the main deployment playbook:
+             ansible-playbook playbook.yml --ask-vault-pass
+          
+          2. The main playbook will:
+             - Install host PostgreSQL (already done)
+             - Deploy application with new docker-compose config
+             - Connect to host PostgreSQL instead of Docker
+
