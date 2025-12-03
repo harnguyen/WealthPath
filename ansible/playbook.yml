@@ -9,8 +9,6 @@
   
   vars:
     docker_compose_version: "2.24.0"
-    postgres_user: "wealthpath"
-    postgres_db: "wealthpath"
   
   pre_tasks:
     - name: Check if secrets.yml exists
@@ -83,28 +81,6 @@
     # ============================================
     # PostgreSQL Installation
     # ============================================
-    - name: Check if .env exists for password
-      stat:
-        path: "{{ app_dir }}/.env"
-      register: env_file_check
-
-    - name: Generate Postgres password if needed
-      set_fact:
-        postgres_password: "{{ lookup('password', '/dev/null length=32 chars=hexdigits') }}"
-      when: not env_file_check.stat.exists
-
-    - name: Read existing Postgres password
-      slurp:
-        src: "{{ app_dir }}/.env"
-      register: existing_env_check
-      when: env_file_check.stat.exists
-
-    - name: Parse existing Postgres password
-      set_fact:
-        postgres_password: "{{ existing_env_check.content | b64decode | regex_search('POSTGRES_PASSWORD=(.+)', '\\1') | first }}"
-      when: env_file_check.stat.exists and existing_env_check.content is defined
-      ignore_errors: yes
-
     - name: Install PostgreSQL
       apt:
         name:
@@ -141,7 +117,7 @@
         state: present
       when: not db_exists.rc == 0
 
-    - name: Check if user exists
+    - name: Check if database user exists
       become_user: postgres
       command: psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='{{ postgres_user }}'"
       register: user_exists
@@ -157,46 +133,25 @@
         state: present
       when: not user_exists.rc == 0
 
-    - name: Update PostgreSQL user password
-      become_user: postgres
-      postgresql_user:
-        name: "{{ postgres_user }}"
-        password: "{{ postgres_password }}"
-        priv: "{{ postgres_db }}:ALL"
-        state: present
-      when: user_exists.rc == 0
-
     - name: Get PostgreSQL version
-      command: psql --version
-      register: postgres_version_result
+      shell: psql --version | awk '{print $3}' | cut -d. -f1,2
+      register: postgres_version
       changed_when: false
 
-    - name: Extract PostgreSQL major version
-      set_fact:
-        postgres_major_version: "{{ postgres_version_result.stdout | regex_search('([0-9]+)\\.[0-9]+') | first }}"
-
-    - name: Configure PostgreSQL to accept connections from Docker
+    - name: Configure PostgreSQL to allow local connections
       lineinfile:
-        path: "/etc/postgresql/{{ postgres_major_version }}/main/postgresql.conf"
-        regexp: "^#?listen_addresses"
-        line: "listen_addresses = '*'"
-        backup: yes
-      notify: restart postgresql
-
-    - name: Configure PostgreSQL host-based authentication for Docker
-      lineinfile:
-        path: "/etc/postgresql/{{ postgres_major_version }}/main/pg_hba.conf"
-        line: "host    {{ postgres_db }}    {{ postgres_user }}    172.16.0.0/12    md5"
-        regexp: "^host.*{{ postgres_db }}.*{{ postgres_user }}.*172"
+        path: "/etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf"
+        regexp: "^host\\s+all\\s+all\\s+127\\.0\\.0\\.1/32\\s+md5"
+        line: "host    all             all             127.0.0.1/32            md5"
         state: present
         backup: yes
       notify: restart postgresql
 
-    - name: Configure PostgreSQL to accept localhost connections
+    - name: Configure PostgreSQL to listen on localhost
       lineinfile:
-        path: "/etc/postgresql/{{ postgres_major_version }}/main/pg_hba.conf"
-        line: "host    {{ postgres_db }}    {{ postgres_user }}    127.0.0.1/32    md5"
-        regexp: "^host.*{{ postgres_db }}.*{{ postgres_user }}.*127"
+        path: "/etc/postgresql/{{ postgres_version.stdout }}/main/postgresql.conf"
+        regexp: "^#?listen_addresses\\s*="
+        line: "listen_addresses = 'localhost'"
         state: present
         backup: yes
       notify: restart postgresql
@@ -255,12 +210,13 @@
         path: "{{ app_dir }}/.env"
       register: env_file
 
-    - name: Generate JWT secret if needed
+    - name: Generate secrets
       set_fact:
         jwt_secret: "{{ lookup('password', '/dev/null length=64 chars=hexdigits') }}"
+        postgres_password: "{{ lookup('password', '/dev/null length=32 chars=hexdigits') }}"
       when: not env_file.stat.exists
 
-    - name: Read existing JWT secret
+    - name: Read existing secrets
       slurp:
         src: "{{ app_dir }}/.env"
       register: existing_env
@@ -269,6 +225,12 @@
     - name: Parse existing JWT secret
       set_fact:
         jwt_secret: "{{ existing_env.content | b64decode | regex_search('JWT_SECRET=(.+)', '\\1') | first }}"
+      when: env_file.stat.exists and existing_env.content is defined
+      ignore_errors: yes
+
+    - name: Parse existing Postgres password
+      set_fact:
+        postgres_password: "{{ existing_env.content | b64decode | regex_search('POSTGRES_PASSWORD=(.+)', '\\1') | first }}"
       when: env_file.stat.exists and existing_env.content is defined
       ignore_errors: yes
 
@@ -327,4 +289,3 @@
       systemd:
         name: postgresql
         state: restarted
-

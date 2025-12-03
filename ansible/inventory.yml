@@ -15,6 +15,10 @@ all:
     app_dir: /opt/wealthpath
     repo_url: https://github.com/thanhhungg97/WealthPath.git
     
+    # Database
+    postgres_user: wealthpath
+    postgres_db: wealthpath
+    
     # Domain & SSL
     domain: "{{ lookup('env', 'DOMAIN') | default('wealthpath.duckdns.org', true) }}"
     use_ssl: "{{ lookup('env', 'USE_SSL') | default('true', true) }}"
