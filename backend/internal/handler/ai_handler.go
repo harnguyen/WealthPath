@@ -42,5 +42,3 @@ func (h *AIHandler) Chat(w http.ResponseWriter, r *http.Request) {
 
 	respondJSON(w, http.StatusOK, resp)
 }
-
-
