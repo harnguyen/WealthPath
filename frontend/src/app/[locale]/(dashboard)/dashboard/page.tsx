@@ -17,6 +17,7 @@ import {
   RefreshCw,
 } from "lucide-react"
 import Link from "next/link"
+import { useTranslations, useLocale } from "next-intl"
 import {
   AreaChart,
   Area,
@@ -33,6 +34,8 @@ import {
 const COLORS = ["#8B5CF6", "#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#EC4899", "#6366F1", "#84CC16"]
 
 export default function DashboardPage() {
+  const t = useTranslations()
+  const locale = useLocale()
   const { data, isLoading } = useQuery<DashboardData>({
     queryKey: ["dashboard"],
     queryFn: () => api.getDashboard(),
@@ -74,8 +77,8 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-display font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Your financial overview at a glance</p>
+        <h1 className="text-3xl font-display font-bold">{t('dashboard.title')}</h1>
+        <p className="text-muted-foreground mt-1">{t('dashboard.subtitle')}</p>
       </div>
 
       {/* Stats Cards */}
@@ -84,7 +87,7 @@ export default function DashboardPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Income</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.totalIncome')}</p>
                 <p className="text-2xl font-bold text-success">{formatCurrency(data.totalIncome)}</p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
@@ -98,7 +101,7 @@ export default function DashboardPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Expenses</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.totalExpenses')}</p>
                 <p className="text-2xl font-bold text-destructive">{formatCurrency(data.totalExpenses)}</p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
@@ -112,7 +115,7 @@ export default function DashboardPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Net Cash Flow</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.netCashFlow')}</p>
                 <p className={`text-2xl font-bold ${isPositive ? "text-success" : "text-destructive"}`}>
                   {formatCurrency(data.netCashFlow)}
                 </p>
@@ -128,7 +131,7 @@ export default function DashboardPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Savings</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.totalSavings')}</p>
                 <p className="text-2xl font-bold text-primary">{formatCurrency(data.totalSavings)}</p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -144,7 +147,7 @@ export default function DashboardPage() {
         {/* Income vs Expenses Chart */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Income vs Expenses</CardTitle>
+            <CardTitle>{t('dashboard.incomeVsExpenses')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -193,7 +196,7 @@ export default function DashboardPage() {
         {/* Expenses by Category */}
         <Card>
           <CardHeader>
-            <CardTitle>Expenses by Category</CardTitle>
+            <CardTitle>{t('dashboard.expensesByCategory')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -246,7 +249,7 @@ export default function DashboardPage() {
         {/* Budget Summary */}
         <Card>
           <CardHeader>
-            <CardTitle>Budget Summary</CardTitle>
+            <CardTitle>{t('dashboard.budgetSummary')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {data.budgetSummary?.length ? (
@@ -271,7 +274,7 @@ export default function DashboardPage() {
               })
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No budgets set up yet
+                {t('dashboard.noBudgets')}
               </p>
             )}
           </CardContent>
@@ -280,7 +283,7 @@ export default function DashboardPage() {
         {/* Savings Goals */}
         <Card>
           <CardHeader>
-            <CardTitle>Savings Goals</CardTitle>
+            <CardTitle>{t('dashboard.savingsGoals')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {data.savingsGoals?.length ? (
@@ -306,7 +309,7 @@ export default function DashboardPage() {
               })
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No savings goals yet
+                {t('dashboard.noSavingsGoals')}
               </p>
             )}
           </CardContent>
@@ -315,7 +318,7 @@ export default function DashboardPage() {
         {/* Recent Transactions */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
+            <CardTitle>{t('dashboard.recentTransactions')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -353,7 +356,7 @@ export default function DashboardPage() {
                 })
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No transactions yet
+                  {t('dashboard.noTransactions')}
                 </p>
               )}
             </div>
@@ -367,13 +370,13 @@ export default function DashboardPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <RefreshCw className="w-5 h-5" />
-              Upcoming Bills & Income
+              {t('dashboard.upcomingBillsTitle')}
             </CardTitle>
             <Link
-              href="/recurring"
+              href={`/${locale}/recurring`}
               className="text-sm text-primary hover:underline"
             >
-              View all
+              {t('dashboard.viewAll')}
             </Link>
           </CardHeader>
           <CardContent>
@@ -397,10 +400,10 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                           <Calendar className="w-3 h-3" />
                           {daysUntil === 0
-                            ? "Today"
+                            ? t('dashboard.today')
                             : daysUntil === 1
-                            ? "Tomorrow"
-                            : `In ${daysUntil} days`}
+                            ? t('dashboard.tomorrow')
+                            : t('dashboard.inDays', { days: daysUntil })}
                         </div>
                       </div>
                       <span
@@ -428,7 +431,7 @@ export default function DashboardPage() {
                 <CreditCard className="w-6 h-6 text-destructive" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Debt</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.totalDebt')}</p>
                 <p className="text-2xl font-bold text-destructive">{formatCurrency(data.totalDebt)}</p>
               </div>
             </div>
