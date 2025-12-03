@@ -2,7 +2,7 @@
 # Configuration Tasks
 # Gets server info, sets domain, generates secrets, creates .env
 
-- name: Get public IP
+- name: Get public IP (for display only)
   uri:
     url: http://169.254.169.254/latest/meta-data/public-ipv4
     return_content: yes
@@ -13,13 +13,9 @@
   set_fact:
     server_ip: "{{ public_ip_result.content | default(ansible_facts['default_ipv4']['address']) }}"
 
-- name: Generate sslip.io domain
-  set_fact:
-    auto_domain: "{{ server_ip | replace('.', '-') }}.sslip.io"
-
 - name: Set final domain
   set_fact:
-    final_domain: "{{ domain if domain != '' else auto_domain }}"
+    final_domain: "{{ domain }}"
     protocol: "{{ 'https' if use_ssl == 'true' else 'http' }}"
 
 - name: Set ACME CA for ZeroSSL
@@ -35,7 +31,7 @@
   set_fact:
     jwt_secret: "{{ lookup('password', '/dev/null length=64 chars=hexdigits') }}"
     postgres_password: "{{ lookup('password', '/dev/null length=32 chars=hexdigits') }}"
-  when: not env_file.stat.exists
+  when: not env_file.stat.exists and postgres_password is not defined
 
 - name: Read existing secrets
   slurp:

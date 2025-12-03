@@ -37,6 +37,10 @@
     - name: PostgreSQL Setup
       import_tasks: tasks/postgresql.yml
 
+    # Database migration (if migrating from Docker PostgreSQL)
+    - name: Database Migration
+      import_tasks: tasks/migrate-db.yml
+
     # Application directory and repository
     - name: Application Setup
       import_tasks: tasks/app.yml

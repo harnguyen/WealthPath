@@ -1,0 +1,93 @@
+---
+# Database Migration Task
+# Exports data from Docker PostgreSQL and imports to host PostgreSQL
+# Only runs if Docker PostgreSQL exists and has data
+
+- name: Check if Docker PostgreSQL container exists
+  command: docker ps --filter "name=wealthpath-postgres" --format "{{.Names}}"
+  register: docker_postgres_check
+  changed_when: false
+  failed_when: false
+
+- name: Get Docker PostgreSQL password from container env
+  shell: docker inspect wealthpath-postgres-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep POSTGRES_PASSWORD | cut -d= -f2
+  register: docker_postgres_password_result
+  when: docker_postgres_check.stdout != ""
+  changed_when: false
+  failed_when: false
+  no_log: true
+
+- name: Set Docker PostgreSQL password fact
+  set_fact:
+    docker_postgres_password: "{{ docker_postgres_password_result.stdout }}"
+    postgres_password: "{{ docker_postgres_password_result.stdout }}"
+  when: docker_postgres_check.stdout != "" and docker_postgres_password_result.stdout is defined
+  no_log: true
+
+- name: Check if Docker PostgreSQL has data
+  command: docker exec wealthpath-postgres-1 psql -U {{ postgres_user }} -d {{ postgres_db }} -tAc "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"
+  register: docker_table_count
+  when: docker_postgres_check.stdout != ""
+  changed_when: false
+  failed_when: false
+
+- name: Export data from Docker PostgreSQL
+  command: docker exec wealthpath-postgres-1 pg_dump -U {{ postgres_user }} -d {{ postgres_db }} --clean --if-exists
+  register: db_dump
+  when: docker_postgres_check.stdout != "" and docker_table_count.stdout|int > 0
+  changed_when: false
+  no_log: false
+
+- name: Save database dump to file
+  copy:
+    content: "{{ db_dump.stdout }}"
+    dest: /tmp/wealthpath_migration.sql
+    mode: '0600'
+  when: docker_postgres_check.stdout != "" and docker_table_count.stdout|int > 0 and db_dump.stdout is defined
+
+- name: Wait for host PostgreSQL to be ready
+  wait_for:
+    port: 5432
+    host: localhost
+    delay: 5
+    timeout: 30
+  when: docker_postgres_check.stdout != "" and docker_table_count.stdout|int > 0
+
+- name: Update host PostgreSQL user password to match Docker
+  become_user: postgres
+  postgresql_user:
+    name: "{{ postgres_user }}"
+    password: "{{ docker_postgres_password }}"
+    state: present
+  when: docker_postgres_check.stdout != "" and docker_table_count.stdout|int > 0 and docker_postgres_password is defined
+  no_log: true
+
+- name: Import data to host PostgreSQL
+  become_user: postgres
+  shell: |
+    psql -d {{ postgres_db }} < /tmp/wealthpath_migration.sql
+  when: docker_postgres_check.stdout != "" and docker_table_count.stdout|int > 0 and db_dump.stdout is defined
+  register: import_result
+  no_log: false
+
+- name: Verify data migration
+  become_user: postgres
+  command: psql -U {{ postgres_user }} -d {{ postgres_db }} -tAc "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"
+  register: host_table_count
+  when: docker_postgres_check.stdout != "" and docker_table_count.stdout|int > 0
+  changed_when: false
+
+- name: Display migration status
+  debug:
+    msg: |
+      Database migration completed!
+      Docker tables: {{ docker_table_count.stdout }}
+      Host tables: {{ host_table_count.stdout }}
+  when: docker_postgres_check.stdout != "" and docker_table_count.stdout|int > 0
+
+- name: Clean up migration file
+  file:
+    path: /tmp/wealthpath_migration.sql
+    state: absent
+  when: docker_postgres_check.stdout != "" and docker_table_count.stdout|int > 0
+
