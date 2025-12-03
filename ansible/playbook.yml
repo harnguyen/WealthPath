@@ -195,16 +195,6 @@
       until: backend_health.rc == 0
       changed_when: false
 
-    - name: Wait for Caddy to be ready
-      uri:
-        url: "http://localhost/api/health"
-        status_code: [200, 308]
-      register: caddy_health
-      retries: 10
-      delay: 3
-      until: caddy_health.status in [200, 308]
-      ignore_errors: yes
-
     - name: Display deployment info
       debug:
         msg: |
