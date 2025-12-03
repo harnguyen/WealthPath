@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { locales, type Locale } from '@/i18n'
 import { Providers } from '@/components/providers'
+import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import '../globals.css'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://wealthpath.duckdns.org'
@@ -81,9 +82,7 @@ export async function generateMetadata({
       },
     },
     verification: {
-      // Add these when you have them
-      // google: 'your-google-verification-code',
-      // yandex: 'your-yandex-verification-code',
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
     },
   }
 }
@@ -110,6 +109,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className="min-h-screen">
+        <GoogleAnalytics />
         <NextIntlClientProvider messages={messages}>
           <Providers>
             {children}
