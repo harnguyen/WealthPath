@@ -67,7 +67,7 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
           build-args: |
-            NEXT_PUBLIC_API_URL=${{ matrix.name == 'frontend' && '/api' || '' }}
+            NEXT_PUBLIC_API_URL=
             NEXT_PUBLIC_BASE_URL=${{ matrix.name == 'frontend' && format('https://{0}', secrets.DOMAIN) || '' }}
             NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=${{ matrix.name == 'frontend' && secrets.GOOGLE_SITE_VERIFICATION || '' }}
             NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ matrix.name == 'frontend' && secrets.GA_MEASUREMENT_ID || '' }}

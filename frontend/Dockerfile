@@ -16,7 +16,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Build-time environment variables for Next.js
-ARG NEXT_PUBLIC_API_URL=/api
+# NEXT_PUBLIC_API_URL should be empty for same-origin (Caddy proxies /api/* to backend)
+ARG NEXT_PUBLIC_API_URL=
 ARG NEXT_PUBLIC_BASE_URL=https://wealthpath.duckdns.org
 ARG NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
