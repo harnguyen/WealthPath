@@ -43,11 +43,13 @@ jobs:
         run: go test -v -race -coverprofile=coverage.out ./...
       
       - name: Upload coverage
+        if: ${{ secrets.CODECOV_TOKEN != '' }}
         uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           file: backend/coverage.out
           flags: backend
-        continue-on-error: true
+          fail_ci_if_error: false
 
   frontend-lint:
     name: Frontend Lint & Type Check
