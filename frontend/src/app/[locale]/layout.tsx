@@ -82,7 +82,8 @@ export async function generateMetadata({
       },
     },
     verification: {
-      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+      // Hardcoded for reliability - env var can override if needed
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || 'hmaoUIUVvl1QGRo_Oj_hRbSWzAjI5Por_V4QAfEC9ZM',
     },
   }
 }
