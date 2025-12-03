@@ -25,6 +25,17 @@ all:
     use_zerossl: "{{ lookup('env', 'USE_ZEROSSL') | default('true', true) }}"
     admin_email: "{{ lookup('env', 'ADMIN_EMAIL') | default('admin@example.com', true) }}"
     
+    # OAuth - Google (from GitHub Secrets via env vars)
+    google_client_id: "{{ lookup('env', 'GOOGLE_CLIENT_ID') | default('', true) }}"
+    google_client_secret: "{{ lookup('env', 'GOOGLE_CLIENT_SECRET') | default('', true) }}"
+    
+    # OAuth - Facebook (from GitHub Secrets via env vars)
+    facebook_app_id: "{{ lookup('env', 'FACEBOOK_APP_ID') | default('', true) }}"
+    facebook_app_secret: "{{ lookup('env', 'FACEBOOK_APP_SECRET') | default('', true) }}"
+    
+    # AI (from GitHub Secrets via env vars)
+    openai_api_key: "{{ lookup('env', 'OPENAI_API_KEY') | default('', true) }}"
+    
     # Docker compose file
     compose_file: docker-compose.deploy.yaml
 
