@@ -1,15 +1,37 @@
-{$DOMAIN:localhost} {
-    # API routes
-    handle /api/* {
-        reverse_proxy backend:8080
-    }
+# WealthPath Caddy Configuration
+#
+# Environment variables:
+#   DOMAIN    - Domain name (e.g., wealthpath.duckdns.org)
+#   ACME_CA   - Optional: ACME CA URL for ZeroSSL
+#   ACME_EMAIL - Optional: Email for certificate registration
 
-    # Frontend
-    handle {
-        reverse_proxy frontend:3000
-    }
-
-    encode gzip
+{
+    # Use ZeroSSL if ACME_CA is set
+    acme_ca {$ACME_CA:}
+    email {$ACME_EMAIL:}
 }
 
-
+{$DOMAIN:localhost} {
+    # API routes to backend
+    reverse_proxy /api/* backend:8080
+    
+    # Everything else to frontend
+    reverse_proxy /* frontend:3000
+    
+    # Logging
+    log {
+        output stdout
+        format console
+    }
+    
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+        -Server
+    }
+    
+    # Enable compression
+    encode gzip zstd
+}

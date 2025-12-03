@@ -126,32 +126,14 @@ resource "aws_instance" "wealthpath" {
     # Determine protocol
     if [ "$USE_SSL" = "true" ]; then
       PROTOCOL="https"
-      CADDY_DOMAIN="$DOMAIN"
     else
       PROTOCOL="http"
-      CADDY_DOMAIN="http://$DOMAIN"
     fi
     
-    # Create Caddyfile with optional ZeroSSL
+    # Set ACME CA for ZeroSSL if enabled
+    ACME_CA=""
     if [ "$USE_ZEROSSL" = "true" ] && [ "$USE_SSL" = "true" ]; then
-      cat > Caddyfile << CADDYEOF
-{
-    acme_ca https://acme.zerossl.com/v2/DV90
-    email $ADMIN_EMAIL
-}
-
-$CADDY_DOMAIN {
-    reverse_proxy /api/* backend:8080
-    reverse_proxy /* frontend:3000
-}
-CADDYEOF
-    else
-      cat > Caddyfile << CADDYEOF
-$CADDY_DOMAIN {
-    reverse_proxy /api/* backend:8080
-    reverse_proxy /* frontend:3000
-}
-CADDYEOF
+      ACME_CA="https://acme.zerossl.com/v2/DV90"
     fi
     
     # Generate secrets
@@ -167,6 +149,8 @@ JWT_SECRET=$JWT_SECRET
 DOMAIN=$DOMAIN
 FRONTEND_URL=$PROTOCOL://$DOMAIN
 ALLOWED_ORIGINS=$PROTOCOL://$DOMAIN
+ACME_CA=$ACME_CA
+ACME_EMAIL=$ADMIN_EMAIL
 ENVEOF
     
     # Pull and run pre-built images
