@@ -18,20 +18,24 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/store/auth"
 import { usePathname } from "next/navigation"
-
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Transactions", href: "/transactions", icon: ArrowUpDown },
-  { name: "Recurring", href: "/recurring", icon: RefreshCw },
-  { name: "Budgets", href: "/budgets", icon: PiggyBank },
-  { name: "Savings Goals", href: "/savings", icon: Target },
-  { name: "Debt Manager", href: "/debts", icon: CreditCard },
-  { name: "Calculator", href: "/calculator", icon: Calculator },
-]
+import { useTranslations, useLocale } from 'next-intl'
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 export function Sidebar() {
   const pathname = usePathname()
+  const locale = useLocale()
+  const t = useTranslations()
   const { user, logout } = useAuthStore()
+
+  const navigation = [
+    { name: t('dashboard.title'), href: `/${locale}/dashboard`, icon: LayoutDashboard, key: 'dashboard' },
+    { name: t('transactions.title'), href: `/${locale}/transactions`, icon: ArrowUpDown, key: 'transactions' },
+    { name: t('recurring.title'), href: `/${locale}/recurring`, icon: RefreshCw, key: 'recurring' },
+    { name: t('budgets.title'), href: `/${locale}/budgets`, icon: PiggyBank, key: 'budgets' },
+    { name: t('savings.title'), href: `/${locale}/savings`, icon: Target, key: 'savings' },
+    { name: t('debts.title'), href: `/${locale}/debts`, icon: CreditCard, key: 'debts' },
+    { name: "Calculator", href: `/${locale}/calculator`, icon: Calculator, key: 'calculator' },
+  ]
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r flex flex-col">
@@ -46,10 +50,10 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1">
         {navigation.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
           return (
             <Link
-              key={item.name}
+              key={item.key}
               href={item.href}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all",
@@ -66,7 +70,7 @@ export function Sidebar() {
       </nav>
 
       {/* User section */}
-      <div className="p-4 border-t">
+      <div className="p-4 border-t space-y-3">
         <div className="flex items-center gap-3 px-2 mb-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold">
             {user?.name?.charAt(0).toUpperCase() || "U"}
@@ -76,11 +80,14 @@ export function Sidebar() {
             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
           </div>
         </div>
+        <div className="px-2">
+          <LanguageSwitcher />
+        </div>
         <div className="flex gap-2">
           <Button variant="ghost" size="sm" className="flex-1" asChild>
-            <Link href="/settings">
+            <Link href={`/${locale}/settings`}>
               <Settings className="w-4 h-4 mr-2" />
-              Settings
+              {t('settings.title')}
             </Link>
           </Button>
           <Button variant="ghost" size="sm" onClick={logout}>

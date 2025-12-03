@@ -1,17 +1,8 @@
+const createNextIntlPlugin = require('next-intl/plugin')
+
+const withNextIntl = createNextIntlPlugin('./src/i18n.ts')
+
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  output: 'standalone',
-  async rewrites() {
-    const apiUrl = process.env.API_URL || 'http://localhost:8080'
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${apiUrl}/api/:path*`,
-      },
-    ]
-  },
-}
+const nextConfig = {}
 
-module.exports = nextConfig
-
+module.exports = withNextIntl(nextConfig)
