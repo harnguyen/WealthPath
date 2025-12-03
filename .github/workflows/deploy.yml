@@ -40,8 +40,8 @@ jobs:
             echo ""
             echo "🔍 Health Checks:"
             
-            # Check backend health
-            if curl -sf http://localhost:8080/api/health > /dev/null 2>&1; then
+            # Check backend health (via docker exec since port not exposed to host)
+            if sudo docker exec wealthpath-backend-1 wget -qO- http://localhost:8080/api/health 2>/dev/null | grep -q "ok"; then
               echo "✅ Backend: healthy"
             else
               echo "❌ Backend: unhealthy"
@@ -49,8 +49,8 @@ jobs:
               exit 1
             fi
             
-            # Check frontend
-            if curl -sf http://localhost:3000 > /dev/null 2>&1; then
+            # Check frontend (via docker exec)
+            if sudo docker exec wealthpath-frontend-1 wget -qO- http://localhost:3000 2>/dev/null; then
               echo "✅ Frontend: healthy"
             else
               echo "❌ Frontend: unhealthy"
