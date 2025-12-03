@@ -6,7 +6,6 @@ import {
   api,
   RecurringTransaction,
   CreateRecurringInput,
-  FREQUENCY_OPTIONS,
 } from "@/lib/api"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -35,6 +34,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslations } from "next-intl"
 import {
   Plus,
   ArrowUpRight,
@@ -82,6 +82,7 @@ export default function RecurringPage() {
   const [type, setType] = useState<"income" | "expense">("expense")
   const { toast } = useToast()
   const queryClient = useQueryClient()
+  const t = useTranslations()
 
   const { data: recurring, isLoading } = useQuery<RecurringTransaction[]>({
     queryKey: ["recurring"],
@@ -93,7 +94,7 @@ export default function RecurringPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recurring"] })
       setIsOpen(false)
-      toast({ title: "Recurring transaction created" })
+      toast({ title: t('recurring.created') })
     },
     onError: (error) => {
       toast({
@@ -108,7 +109,7 @@ export default function RecurringPage() {
     mutationFn: (id: string) => api.deleteRecurringTransaction(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recurring"] })
-      toast({ title: "Recurring transaction deleted" })
+      toast({ title: t('recurring.deleted') })
     },
   })
 
@@ -116,7 +117,7 @@ export default function RecurringPage() {
     mutationFn: (id: string) => api.pauseRecurringTransaction(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recurring"] })
-      toast({ title: "Recurring transaction paused" })
+      toast({ title: t('recurring.pausedToast') })
     },
   })
 
@@ -124,7 +125,7 @@ export default function RecurringPage() {
     mutationFn: (id: string) => api.resumeRecurringTransaction(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recurring"] })
-      toast({ title: "Recurring transaction resumed" })
+      toast({ title: t('recurring.resumedToast') })
     },
   })
 
@@ -154,21 +155,21 @@ export default function RecurringPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold">Recurring Transactions</h1>
+          <h1 className="text-3xl font-display font-bold">{t('recurring.title')}</h1>
           <p className="text-muted-foreground mt-1">
-            Manage your recurring income and expenses
+            {t('recurring.subtitle')}
           </p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Add Recurring
+              {t('recurring.addRecurring')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Recurring Transaction</DialogTitle>
+              <DialogTitle>{t('recurring.addRecurringTransaction')}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex gap-2">
@@ -179,7 +180,7 @@ export default function RecurringPage() {
                   onClick={() => setType("expense")}
                 >
                   <ArrowDownRight className="w-4 h-4 mr-2" />
-                  Expense
+                  {t('transactions.expense')}
                 </Button>
                 <Button
                   type="button"
@@ -188,12 +189,12 @@ export default function RecurringPage() {
                   onClick={() => setType("income")}
                 >
                   <ArrowUpRight className="w-4 h-4 mr-2" />
-                  Income
+                  {t('transactions.income')}
                 </Button>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="amount">Amount</Label>
+                <Label htmlFor="amount">{t('transactions.amount')}</Label>
                 <Input
                   id="amount"
                   name="amount"
@@ -205,10 +206,10 @@ export default function RecurringPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">{t('transactions.category')}</Label>
                 <Select name="category" required>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t('common.selectCategory')} />
                   </SelectTrigger>
                   <SelectContent>
                     {(type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map(
@@ -223,33 +224,33 @@ export default function RecurringPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t('transactions.description')}</Label>
                 <Input
                   id="description"
                   name="description"
-                  placeholder="e.g., Monthly rent, Netflix subscription..."
+                  placeholder={t('recurring.descriptionPlaceholder')}
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="frequency">Frequency</Label>
+                <Label htmlFor="frequency">{t('recurring.frequency')}</Label>
                 <Select name="frequency" defaultValue="monthly" required>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {FREQUENCY_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="daily">{t('recurring.daily')}</SelectItem>
+                    <SelectItem value="weekly">{t('recurring.weekly')}</SelectItem>
+                    <SelectItem value="biweekly">{t('recurring.biWeekly')}</SelectItem>
+                    <SelectItem value="monthly">{t('recurring.monthly')}</SelectItem>
+                    <SelectItem value="yearly">{t('recurring.yearly')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="startDate">Start Date</Label>
+                <Label htmlFor="startDate">{t('recurring.startDate')}</Label>
                 <Input
                   id="startDate"
                   name="startDate"
@@ -263,10 +264,10 @@ export default function RecurringPage() {
                 {createMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Creating...
+                    {t('common.creating')}
                   </>
                 ) : (
-                  "Create Recurring Transaction"
+                  t('recurring.createRecurringTransaction')
                 )}
               </Button>
             </form>
@@ -279,7 +280,7 @@ export default function RecurringPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Monthly Income
+              {t('recurring.monthlyIncome')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -291,7 +292,7 @@ export default function RecurringPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Monthly Expenses
+              {t('recurring.monthlyExpenses')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -303,7 +304,7 @@ export default function RecurringPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Net Monthly
+              {t('recurring.netMonthly')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -325,10 +326,10 @@ export default function RecurringPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <RefreshCw className="w-5 h-5" />
-            Active ({activeItems.length})
+            {t('recurring.active')} ({activeItems.length})
           </CardTitle>
           <CardDescription>
-            These transactions will be automatically added on schedule
+            {t('recurring.autoAddDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -340,7 +341,7 @@ export default function RecurringPage() {
             </div>
           ) : activeItems.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
-              No active recurring transactions
+              {t('recurring.noActive')}
             </p>
           ) : (
             <div className="divide-y">
@@ -348,6 +349,7 @@ export default function RecurringPage() {
                 <RecurringItem
                   key={item.id}
                   item={item}
+                  t={t}
                   onPause={() => pauseMutation.mutate(item.id)}
                   onResume={() => resumeMutation.mutate(item.id)}
                   onDelete={() => deleteMutation.mutate(item.id)}
@@ -364,7 +366,7 @@ export default function RecurringPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Pause className="w-5 h-5" />
-              Paused ({pausedItems.length})
+              {t('recurring.paused')} ({pausedItems.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -373,6 +375,7 @@ export default function RecurringPage() {
                 <RecurringItem
                   key={item.id}
                   item={item}
+                  t={t}
                   onPause={() => pauseMutation.mutate(item.id)}
                   onResume={() => resumeMutation.mutate(item.id)}
                   onDelete={() => deleteMutation.mutate(item.id)}
@@ -388,18 +391,20 @@ export default function RecurringPage() {
 
 function RecurringItem({
   item,
+  t,
   onPause,
   onResume,
   onDelete,
 }: {
   item: RecurringTransaction
+  t: ReturnType<typeof useTranslations>
   onPause: () => void
   onResume: () => void
   onDelete: () => void
 }) {
   const isIncome = item.type === "income"
-  const frequencyLabel =
-    FREQUENCY_OPTIONS.find((f) => f.value === item.frequency)?.label || item.frequency
+  const frequencyKey = item.frequency === "biweekly" ? "biWeekly" : item.frequency
+  const frequencyLabel = t(`recurring.${frequencyKey}`)
 
   return (
     <div className="flex items-center justify-between py-4">
@@ -423,13 +428,13 @@ function RecurringItem({
             </Badge>
             {!item.isActive && (
               <Badge variant="outline" className="text-xs">
-                Paused
+                {t('recurring.paused')}
               </Badge>
             )}
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="w-3 h-3" />
-            Next: {formatDate(item.nextOccurrence)}
+            {t('recurring.next')}: {formatDate(item.nextOccurrence)}
           </div>
         </div>
       </div>
@@ -452,17 +457,17 @@ function RecurringItem({
             {item.isActive ? (
               <DropdownMenuItem onClick={onPause}>
                 <Pause className="w-4 h-4 mr-2" />
-                Pause
+                {t('recurring.pause')}
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem onClick={onResume}>
                 <Play className="w-4 h-4 mr-2" />
-                Resume
+                {t('recurring.resume')}
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={onDelete} className="text-destructive">
               <Trash2 className="w-4 h-4 mr-2" />
-              Delete
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

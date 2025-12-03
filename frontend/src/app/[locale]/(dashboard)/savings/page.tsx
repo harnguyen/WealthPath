@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslations } from "next-intl"
 import { Plus, Trash2, Loader2, Target, DollarSign, Calendar } from "lucide-react"
 
 const COLORS = [
@@ -36,6 +37,7 @@ export default function SavingsPage() {
   const [contributeAmount, setContributeAmount] = useState("")
   const { toast } = useToast()
   const queryClient = useQueryClient()
+  const t = useTranslations()
 
   const { data: goals, isLoading } = useQuery<SavingsGoal[]>({
     queryKey: ["savings-goals"],
@@ -48,7 +50,7 @@ export default function SavingsPage() {
       queryClient.invalidateQueries({ queryKey: ["savings-goals"] })
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
       setIsOpen(false)
-      toast({ title: "Savings goal created" })
+      toast({ title: t('savings.goalCreated') })
     },
   })
 
@@ -60,7 +62,7 @@ export default function SavingsPage() {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
       setContributeId(null)
       setContributeAmount("")
-      toast({ title: "Contribution added!" })
+      toast({ title: t('savings.fundsAdded') })
     },
   })
 
@@ -69,7 +71,7 @@ export default function SavingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["savings-goals"] })
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
-      toast({ title: "Savings goal deleted" })
+      toast({ title: t('savings.goalDeleted') })
     },
   })
 
@@ -92,33 +94,33 @@ export default function SavingsPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold">Savings Goals</h1>
-          <p className="text-muted-foreground mt-1">Track your progress toward financial goals</p>
+          <h1 className="text-3xl font-display font-bold">{t('savings.title')}</h1>
+          <p className="text-muted-foreground mt-1">{t('savings.subtitle')}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              New Goal
+              {t('savings.newGoal')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create Savings Goal</DialogTitle>
+              <DialogTitle>{t('savings.addGoal')}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Goal Name</Label>
+                <Label htmlFor="name">{t('savings.goalName')}</Label>
                 <Input
                   id="name"
                   name="name"
-                  placeholder="e.g., Emergency Fund"
+                  placeholder={t('savings.goalNamePlaceholder')}
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="targetAmount">Target Amount</Label>
+                <Label htmlFor="targetAmount">{t('savings.targetAmount')}</Label>
                 <Input
                   id="targetAmount"
                   name="targetAmount"
@@ -130,7 +132,7 @@ export default function SavingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="targetDate">Target Date (optional)</Label>
+                <Label htmlFor="targetDate">{t('savings.targetDateOptional')}</Label>
                 <Input id="targetDate" name="targetDate" type="date" />
               </div>
 
@@ -138,10 +140,10 @@ export default function SavingsPage() {
                 {createMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Creating...
+                    {t('common.creating')}
                   </>
                 ) : (
-                  "Create Goal"
+                  t('savings.createGoal')
                 )}
               </Button>
             </form>
@@ -158,10 +160,10 @@ export default function SavingsPage() {
                 <Target className="w-7 h-7 text-white" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Saved</p>
+                <p className="text-sm text-muted-foreground">{t('savings.totalSaved')}</p>
                 <p className="text-3xl font-bold gradient-text">{formatCurrency(totalSaved)}</p>
                 <p className="text-sm text-muted-foreground">
-                  of {formatCurrency(totalTarget)} target
+                  {t('savings.ofTarget', { amount: formatCurrency(totalTarget) })}
                 </p>
               </div>
             </div>
@@ -181,11 +183,11 @@ export default function SavingsPage() {
           <CardContent className="pt-6">
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <p className="text-sm text-muted-foreground">Active Goals</p>
+                <p className="text-sm text-muted-foreground">{t('savings.activeGoals')}</p>
                 <p className="text-3xl font-bold">{goals?.length || 0}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Avg Progress</p>
+                <p className="text-sm text-muted-foreground">{t('savings.avgProgress')}</p>
                 <p className="text-3xl font-bold">
                   {goals?.length
                     ? formatPercent(
@@ -288,16 +290,16 @@ export default function SavingsPage() {
                           onClick={() => setContributeId(goal.id)}
                         >
                           <DollarSign className="w-4 h-4 mr-2" />
-                          Add Contribution
+                          {t('savings.addMoney')}
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Add Contribution to {goal.name}</DialogTitle>
+                          <DialogTitle>{t('savings.addFunds')} - {goal.name}</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="contribute-amount">Amount</Label>
+                            <Label htmlFor="contribute-amount">{t('transactions.amount')}</Label>
                             <Input
                               id="contribute-amount"
                               type="number"
@@ -322,7 +324,7 @@ export default function SavingsPage() {
                             {contributeMutation.isPending ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
-                              "Add Contribution"
+                              t('savings.addFunds')
                             )}
                           </Button>
                         </div>
@@ -332,7 +334,7 @@ export default function SavingsPage() {
 
                   {isComplete && (
                     <div className="text-center py-2 text-success font-medium">
-                      🎉 Goal Achieved!
+                      🎉 {t('dashboard.goalAchieved')}
                     </div>
                   )}
                 </CardContent>
@@ -344,9 +346,9 @@ export default function SavingsPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <Target className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No savings goals yet</p>
+            <p className="text-muted-foreground">{t('savings.noGoalsYet')}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Create a goal to start saving toward your dreams
+              {t('savings.createGoalToStart')}
             </p>
           </CardContent>
         </Card>
