@@ -23,33 +23,17 @@ services:
       - backend
     restart: always
 
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-wealthpath}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
-      POSTGRES_DB: ${POSTGRES_DB:-wealthpath}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wealthpath}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: always
-
   flyway:
     image: ghcr.io/thanhhungg97/wealthpath-migrations:latest
     environment:
-      FLYWAY_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-wealthpath}
+      FLYWAY_URL: jdbc:postgresql://host.docker.internal:5432/${POSTGRES_DB:-wealthpath}
       FLYWAY_USER: ${POSTGRES_USER:-wealthpath}
       FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
       FLYWAY_LOCATIONS: filesystem:/flyway/sql
       FLYWAY_CONNECT_RETRIES: 10
       FLYWAY_BASELINE_ON_MIGRATE: "true"
-    depends_on:
-      postgres:
-        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: "no"
 
   backend:
@@ -57,7 +41,7 @@ services:
     expose:
       - "8080"
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-wealthpath}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-wealthpath}?sslmode=disable
+      DATABASE_URL: postgres://${POSTGRES_USER:-wealthpath}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB:-wealthpath}?sslmode=disable
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
       FRONTEND_URL: ${FRONTEND_URL:-}
@@ -72,6 +56,8 @@ services:
       # OpenAI
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       PORT: "8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       flyway:
         condition: service_completed_successfully
@@ -88,7 +74,6 @@ services:
     restart: always
 
 volumes:
-  postgres_data:
   caddy_data:
   caddy_config:
 
