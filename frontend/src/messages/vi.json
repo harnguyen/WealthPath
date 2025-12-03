@@ -21,6 +21,43 @@
   "calculator": {
     "title": "Máy tính"
   },
+  "landing": {
+    "signIn": "Đăng nhập",
+    "getStarted": "Bắt đầu",
+    "startFree": "Dùng thử miễn phí",
+    "hero": {
+      "title": "Kiểm Soát",
+      "titleHighlight": "Tương Lai Tài Chính",
+      "description": "Theo dõi chi tiêu, quản lý ngân sách, đạt mục tiêu tiết kiệm và loại bỏ nợ. WealthPath giúp bạn xây dựng cuộc sống tài chính mà bạn xứng đáng."
+    },
+    "featuresSection": {
+      "title": "Mọi Thứ Bạn Cần Để Quản Lý Tiền Bạc",
+      "description": "Các tính năng mạnh mẽ được thiết kế để giúp bạn hiểu, kiểm soát và phát triển tài chính của mình."
+    },
+    "features": {
+      "tracking": {
+        "title": "Theo Dõi Thu Chi",
+        "description": "Dễ dàng ghi lại và phân loại thu nhập cũng như chi tiêu để hiểu tiền của bạn đi đâu."
+      },
+      "budgeting": {
+        "title": "Ngân Sách Thông Minh",
+        "description": "Tạo ngân sách cho các danh mục khác nhau và nhận thông báo khi bạn sắp đạt giới hạn."
+      },
+      "savings": {
+        "title": "Mục Tiêu Tiết Kiệm",
+        "description": "Đặt mục tiêu tài chính và theo dõi tiến độ của bạn với các chỉ báo trực quan."
+      },
+      "debt": {
+        "title": "Quản Lý Nợ",
+        "description": "Theo dõi các khoản vay, tính toán kế hoạch trả nợ và hình dung con đường thoát nợ."
+      }
+    },
+    "cta": {
+      "title": "Sẵn Sàng Thay Đổi Tài Chính Của Bạn?",
+      "description": "Tham gia cùng hàng nghìn người dùng đang kiểm soát tương lai tài chính với WealthPath.",
+      "button": "Bắt Đầu Miễn Phí"
+    }
+  },
   "auth": {
     "login": "Đăng nhập",
     "register": "Đăng ký",

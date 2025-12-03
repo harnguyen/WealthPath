@@ -6,8 +6,9 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/auth"
 import Link from "next/link"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
+import { WebApplicationJsonLd, OrganizationJsonLd } from "@/components/seo/json-ld"
 import {
   TrendingUp,
   ArrowRight,
@@ -20,6 +21,7 @@ import {
 export default function HomePage() {
   const router = useRouter()
   const locale = useLocale()
+  const t = useTranslations('landing')
   const { isAuthenticated } = useAuthStore()
 
   useEffect(() => {
@@ -31,28 +33,30 @@ export default function HomePage() {
   const features = [
     {
       icon: BarChart3,
-      title: "Income & Expense Tracking",
-      description: "Easily log and categorize your income and expenses to understand where your money goes.",
+      title: t('features.tracking.title'),
+      description: t('features.tracking.description'),
     },
     {
       icon: PiggyBank,
-      title: "Smart Budgeting",
-      description: "Create budgets for different categories and get alerts when you're approaching your limits.",
+      title: t('features.budgeting.title'),
+      description: t('features.budgeting.description'),
     },
     {
       icon: Target,
-      title: "Savings Goals",
-      description: "Set financial goals and track your progress with visual indicators and projections.",
+      title: t('features.savings.title'),
+      description: t('features.savings.description'),
     },
     {
       icon: CreditCard,
-      title: "Debt Management",
-      description: "Track your loans, calculate payoff plans, and visualize your path to becoming debt-free.",
+      title: t('features.debt.title'),
+      description: t('features.debt.description'),
     },
   ]
 
   return (
     <div className="min-h-screen bg-background">
+      <WebApplicationJsonLd locale={locale} />
+      <OrganizationJsonLd />
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
@@ -68,33 +72,32 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-4">
               <Link href={`/${locale}/login`}>
-                <Button variant="ghost">Sign in</Button>
+                <Button variant="ghost">{t('signIn')}</Button>
               </Link>
               <Link href={`/${locale}/register`}>
-                <Button>Get Started</Button>
+                <Button>{t('getStarted')}</Button>
               </Link>
             </div>
           </nav>
 
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 animate-fade-in">
-              Take Control of Your{" "}
-              <span className="gradient-text">Financial Future</span>
+              {t('hero.title')}{" "}
+              <span className="gradient-text">{t('hero.titleHighlight')}</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: "100ms" }}>
-              Track expenses, manage budgets, achieve savings goals, and eliminate debt.
-              WealthPath helps you build the financial life you deserve.
+              {t('hero.description')}
             </p>
             <div className="flex items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: "200ms" }}>
               <Link href={`/${locale}/register`}>
                 <Button size="lg" className="text-lg px-8">
-                  Start Free
+                  {t('startFree')}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
               <Link href={`/${locale}/login`}>
                 <Button size="lg" variant="outline" className="text-lg px-8">
-                  Sign In
+                  {t('signIn')}
                 </Button>
               </Link>
             </div>
@@ -107,10 +110,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">
-              Everything You Need to Manage Your Money
+              {t('featuresSection.title')}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Powerful features designed to help you understand, control, and grow your finances.
+              {t('featuresSection.description')}
             </p>
           </div>
 
@@ -137,14 +140,14 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="p-12 rounded-3xl bg-gradient-to-br from-primary/10 to-accent/10 border">
             <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">
-              Ready to Transform Your Finances?
+              {t('cta.title')}
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-              Join thousands of users who are taking control of their financial future with WealthPath.
+              {t('cta.description')}
             </p>
             <Link href={`/${locale}/register`}>
               <Button size="lg" className="text-lg px-10">
-                Get Started Free
+                {t('cta.button')}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>

@@ -21,6 +21,43 @@
   "calculator": {
     "title": "Calculator"
   },
+  "landing": {
+    "signIn": "Sign in",
+    "getStarted": "Get Started",
+    "startFree": "Start Free",
+    "hero": {
+      "title": "Take Control of Your",
+      "titleHighlight": "Financial Future",
+      "description": "Track expenses, manage budgets, achieve savings goals, and eliminate debt. WealthPath helps you build the financial life you deserve."
+    },
+    "featuresSection": {
+      "title": "Everything You Need to Manage Your Money",
+      "description": "Powerful features designed to help you understand, control, and grow your finances."
+    },
+    "features": {
+      "tracking": {
+        "title": "Income & Expense Tracking",
+        "description": "Easily log and categorize your income and expenses to understand where your money goes."
+      },
+      "budgeting": {
+        "title": "Smart Budgeting",
+        "description": "Create budgets for different categories and get alerts when you're approaching your limits."
+      },
+      "savings": {
+        "title": "Savings Goals",
+        "description": "Set financial goals and track your progress with visual indicators and projections."
+      },
+      "debt": {
+        "title": "Debt Management",
+        "description": "Track your loans, calculate payoff plans, and visualize your path to becoming debt-free."
+      }
+    },
+    "cta": {
+      "title": "Ready to Transform Your Finances?",
+      "description": "Join thousands of users who are taking control of their financial future with WealthPath.",
+      "button": "Get Started Free"
+    }
+  },
   "auth": {
     "login": "Login",
     "register": "Register",
