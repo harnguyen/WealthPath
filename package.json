@@ -1,0 +1,22 @@
+{
+  "name": "wealthpath",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "pre-push": "./scripts/pre-push.sh",
+    "check": "./scripts/pre-push.sh",
+    "backend:lint": "cd backend && make lint",
+    "backend:build": "cd backend && make build",
+    "backend:test": "cd backend && make test",
+    "frontend:lint": "cd frontend && npm run lint",
+    "frontend:build": "cd frontend && npm run build",
+    "lint": "npm run backend:lint && npm run frontend:lint",
+    "build": "npm run backend:build && npm run frontend:build"
+  },
+  "description": "WealthPath - Personal Finance Tracker",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thanhhungg97/WealthPath.git"
+  }
+}
+
