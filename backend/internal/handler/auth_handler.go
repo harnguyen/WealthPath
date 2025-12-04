@@ -27,6 +27,18 @@ func NewAuthHandler(userService AuthServiceInterface) *AuthHandler {
 	return &AuthHandler{userService: userService}
 }
 
+// Register godoc
+// @Summary Register a new user
+// @Description Create a new user account with email and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param input body service.RegisterInput true "Registration data"
+// @Success 201 {object} service.AuthResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse "Email already in use"
+// @Failure 500 {object} ErrorResponse
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var input service.RegisterInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -52,6 +64,18 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusCreated, resp)
 }
 
+// Login godoc
+// @Summary Login user
+// @Description Authenticate user with email and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param input body service.LoginInput true "Login credentials"
+// @Success 200 {object} service.AuthResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse "Invalid credentials"
+// @Failure 500 {object} ErrorResponse
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var input service.LoginInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -72,6 +96,16 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, resp)
 }
 
+// Me godoc
+// @Summary Get current user
+// @Description Get the authenticated user's profile
+// @Tags auth
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} model.User
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Router /auth/me [get]
 func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r.Context())
 	if userID == uuid.Nil {
@@ -88,6 +122,19 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, user)
 }
 
+// UpdateSettings godoc
+// @Summary Update user settings
+// @Description Update the authenticated user's profile settings
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param input body service.UpdateSettingsInput true "Settings to update"
+// @Success 200 {object} model.User
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /auth/settings [put]
 func (h *AuthHandler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r.Context())
 	if userID == uuid.Nil {

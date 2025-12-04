@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	_ "github.com/wealthpath/backend/internal/model" // swagger types
 	"github.com/wealthpath/backend/internal/service"
 )
 
@@ -17,6 +18,19 @@ func NewSavingsGoalHandler(service SavingsGoalServiceInterface) *SavingsGoalHand
 	return &SavingsGoalHandler{service: service}
 }
 
+// Create godoc
+// @Summary Create a savings goal
+// @Description Create a new savings goal
+// @Tags savings-goals
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param input body service.CreateSavingsGoalInput true "Savings goal data"
+// @Success 201 {object} model.SavingsGoal
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /savings-goals [post]
 func (h *SavingsGoalHandler) Create(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r.Context())
 
@@ -35,6 +49,18 @@ func (h *SavingsGoalHandler) Create(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusCreated, goal)
 }
 
+// Get godoc
+// @Summary Get a savings goal
+// @Description Get a savings goal by ID
+// @Tags savings-goals
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Savings Goal ID"
+// @Success 200 {object} model.SavingsGoal
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Router /savings-goals/{id} [get]
 func (h *SavingsGoalHandler) Get(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -51,6 +77,16 @@ func (h *SavingsGoalHandler) Get(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, goal)
 }
 
+// List godoc
+// @Summary List savings goals
+// @Description Get all savings goals for the current user
+// @Tags savings-goals
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {array} model.SavingsGoal
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /savings-goals [get]
 func (h *SavingsGoalHandler) List(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r.Context())
 
@@ -63,6 +99,20 @@ func (h *SavingsGoalHandler) List(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, goals)
 }
 
+// Update godoc
+// @Summary Update a savings goal
+// @Description Update an existing savings goal
+// @Tags savings-goals
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Savings Goal ID"
+// @Param input body service.UpdateSavingsGoalInput true "Updated savings goal data"
+// @Success 200 {object} model.SavingsGoal
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /savings-goals/{id} [put]
 func (h *SavingsGoalHandler) Update(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r.Context())
 
@@ -87,6 +137,17 @@ func (h *SavingsGoalHandler) Update(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, goal)
 }
 
+// Delete godoc
+// @Summary Delete a savings goal
+// @Description Delete a savings goal by ID
+// @Tags savings-goals
+// @Security BearerAuth
+// @Param id path string true "Savings Goal ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /savings-goals/{id} [delete]
 func (h *SavingsGoalHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r.Context())
 
@@ -104,6 +165,20 @@ func (h *SavingsGoalHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// Contribute godoc
+// @Summary Contribute to a savings goal
+// @Description Add money to a savings goal
+// @Tags savings-goals
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Savings Goal ID"
+// @Param input body service.ContributeInput true "Contribution amount"
+// @Success 200 {object} model.SavingsGoal
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /savings-goals/{id}/contribute [post]
 func (h *SavingsGoalHandler) Contribute(w http.ResponseWriter, r *http.Request) {
 	userID := GetUserID(r.Context())
 

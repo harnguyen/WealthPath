@@ -10,11 +10,32 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 
+	_ "github.com/wealthpath/backend/docs"
 	"github.com/wealthpath/backend/internal/handler"
 	"github.com/wealthpath/backend/internal/repository"
 	"github.com/wealthpath/backend/internal/service"
 )
+
+// @title WealthPath API
+// @version 1.0
+// @description Personal finance management API for tracking transactions, budgets, savings goals, and debts.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.email support@wealthpath.io
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /api
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
 	dbURL := os.Getenv("DATABASE_URL")
@@ -77,7 +98,18 @@ func main() {
 		MaxAge:           300,
 	}))
 
+	// Swagger documentation
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
+
 	// Health check
+	// @Summary Health check
+	// @Description Check if the API is running
+	// @Tags health
+	// @Produce json
+	// @Success 200 {object} map[string]string
+	// @Router /health [get]
 	r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
