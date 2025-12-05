@@ -26,20 +26,21 @@ test.describe('Debts', () => {
     await waitForDialog(page);
     
     await page.fill('#name', 'Car Loan');
-    await selectFromCombobox(page, 0);
+    await selectFromCombobox(page, 0); // Select debt type
     await page.fill('#originalAmount', '25000');
     await page.fill('#currentBalance', '20000');
     await page.fill('#interestRate', '5.5');
     await page.fill('#minimumPayment', '450');
     await page.fill('#dueDay', '15');
+    await page.fill('#startDate', '2024-01-01');
     
-    const startDate = page.locator('#startDate');
-    if (await startDate.isVisible()) {
-      await startDate.fill('2024-01-01');
-    }
+    await page.locator('[role="dialog"] button:has-text("Add Debt")').click();
     
-    await page.locator('[role="dialog"] button:has-text("Add Debt")').click({ force: true });
-    await page.waitForTimeout(3000);
+    // Assert: dialog must close on success
+    await expect(page.locator('[role="dialog"]')).not.toBeVisible({ timeout: 5000 });
+    
+    // Assert: debt card with name should appear
+    await expect(page.locator('text=Car Loan')).toBeVisible({ timeout: 5000 });
   });
 
   test('should make payment on debt', async ({ page }) => {
@@ -55,26 +56,25 @@ test.describe('Debts', () => {
     await page.fill('#interestRate', '18');
     await page.fill('#minimumPayment', '100');
     await page.fill('#dueDay', '1');
-    
-    const startDate = page.locator('#startDate');
-    if (await startDate.isVisible()) {
-      await startDate.fill('2024-01-01');
-    }
+    await page.fill('#startDate', '2024-01-01');
     
     await page.locator('[role="dialog"] button:has-text("Add Debt")').click({ force: true });
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(2000);
+    
+    // Wait for dialog to close
+    await expect(page.locator('[role="dialog"]')).not.toBeVisible({ timeout: 3000 }).catch(() => {});
     
     // Find "Make Payment" button
     const payBtn = page.locator('button:has-text("Make Payment"), button:has-text("Pay")').first();
     if (await payBtn.isVisible({ timeout: 3000 })) {
       await payBtn.click();
-      await page.waitForTimeout(500);
+      await waitForDialog(page);
       
       // Fill payment amount
-      const amountInput = page.locator('[role="dialog"] input[type="number"], [role="dialog"] input').first();
+      const amountInput = page.locator('[role="dialog"] input[type="number"]').first();
       if (await amountInput.isVisible({ timeout: 2000 })) {
         await amountInput.fill('500');
-        await page.locator('[role="dialog"] button[type="submit"], [role="dialog"] button:has-text("Pay"), [role="dialog"] button:has-text("Make")').click({ force: true });
+        await page.locator('[role="dialog"] button[type="submit"]').click({ force: true });
         await page.waitForTimeout(1000);
       }
     }

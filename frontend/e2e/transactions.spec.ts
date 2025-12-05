@@ -28,8 +28,13 @@ test.describe('Transactions', () => {
     await page.fill('#amount', '50');
     await selectFromCombobox(page, 0);
     
-    await page.locator('[role="dialog"] button[type="submit"]').click({ force: true });
-    await page.waitForTimeout(2000);
+    await page.locator('[role="dialog"] button[type="submit"]').click();
+    
+    // Assert: dialog must close on success
+    await expect(page.locator('[role="dialog"]')).not.toBeVisible({ timeout: 5000 });
+    
+    // Assert: transaction should appear in list (amount $50)
+    await expect(page.locator('text=/\\$50|50\\.00/')).toBeVisible({ timeout: 5000 });
   });
 
   test('should create income transaction', async ({ page }) => {
@@ -37,15 +42,20 @@ test.describe('Transactions', () => {
     await addBtn.click();
     await waitForDialog(page);
     
-    // Click Income button INSIDE the dialog
-    await page.locator('[role="dialog"] button:has-text("Income")').click({ force: true });
+    // Click Income tab INSIDE the dialog
+    await page.locator('[role="dialog"] button:has-text("Income")').click();
     await page.waitForTimeout(300);
     
     await page.fill('#amount', '1000');
     await selectFromCombobox(page, 0);
     
-    await page.locator('[role="dialog"] button[type="submit"]').click({ force: true });
-    await page.waitForTimeout(2000);
+    await page.locator('[role="dialog"] button[type="submit"]').click();
+    
+    // Assert: dialog must close on success
+    await expect(page.locator('[role="dialog"]')).not.toBeVisible({ timeout: 5000 });
+    
+    // Assert: transaction should appear (amount $1000)
+    await expect(page.locator('text=/\\$1,?000|1000/')).toBeVisible({ timeout: 5000 });
   });
 
   test('should delete transaction', async ({ page }) => {

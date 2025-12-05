@@ -25,11 +25,18 @@ test.describe('Budgets', () => {
     await addBtn.click();
     await waitForDialog(page);
     
+    // Select category (first Select in dialog)
     await selectFromCombobox(page, 0);
     await page.fill('#amount', '500');
     
-    await page.locator('[role="dialog"] button[type="submit"], [role="dialog"] button:has-text("Create Budget")').click({ force: true });
-    await page.waitForTimeout(2000);
+    await page.locator('[role="dialog"] button[type="submit"]').click();
+    
+    // Assert: dialog should close on success
+    await expect(page.locator('[role="dialog"]')).not.toBeVisible({ timeout: 5000 });
+    
+    // Assert: success toast or budget card should appear
+    const successIndicator = page.locator('text=/Housing|budget|\\$500/i').first();
+    await expect(successIndicator).toBeVisible({ timeout: 5000 });
   });
 
   test('should show budget card after creation', async ({ page }) => {
@@ -41,14 +48,13 @@ test.describe('Budgets', () => {
     await selectFromCombobox(page, 0);
     await page.fill('#amount', '1000');
     
-    await page.locator('[role="dialog"] button[type="submit"], [role="dialog"] button:has-text("Create Budget")').click({ force: true });
-    await page.waitForTimeout(2000);
+    await page.locator('[role="dialog"] button[type="submit"]').click();
     
-    // Wait for dialog to close
-    await expect(page.locator('[role="dialog"]')).not.toBeVisible({ timeout: 3000 }).catch(() => {});
+    // Assert: dialog must close
+    await expect(page.locator('[role="dialog"]')).not.toBeVisible({ timeout: 5000 });
     
-    // Verify page still shows budgets content (budget was created or already exists)
-    await expect(page.locator('main')).toBeVisible();
+    // Assert: budget card with amount should be visible
+    await expect(page.locator('[data-testid="budget-card"], .card, article').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('should delete budget', async ({ page }) => {

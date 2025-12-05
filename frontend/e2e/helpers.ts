@@ -35,21 +35,20 @@ export async function selectFromCombobox(page: Page, index: number = 0): Promise
   // Wait for dialog overlay animation to complete
   await page.waitForTimeout(400);
   
-  const combobox = page.locator('[role="dialog"] [role="combobox"]').nth(index);
-  await expect(combobox).toBeVisible({ timeout: 2000 });
+  // Shadcn Select uses button[role="combobox"]
+  const combobox = page.locator('[role="dialog"] button[role="combobox"]').nth(index);
+  await expect(combobox).toBeVisible({ timeout: 3000 });
   
-  // Click to open dropdown - force to bypass any overlay
-  await combobox.click({ force: true });
-  await page.waitForTimeout(200);
+  // Click to open dropdown
+  await combobox.click();
+  await page.waitForTimeout(300);
   
-  // Wait for listbox to appear
-  const listbox = page.locator('[role="listbox"]');
-  await expect(listbox).toBeVisible({ timeout: 2000 });
+  // Wait for SelectContent (uses data-radix-popper-content-wrapper or [role="listbox"])
+  const listbox = page.locator('[data-radix-popper-content-wrapper] [role="option"], [role="listbox"] [role="option"]').first();
+  await expect(listbox).toBeVisible({ timeout: 3000 });
   
   // Click first option
-  const option = page.locator('[role="option"]').first();
-  await expect(option).toBeVisible({ timeout: 2000 });
-  await option.click({ force: true });
+  await listbox.click();
   await page.waitForTimeout(200);
 }
 

@@ -1,14 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { api, BudgetWithSpent, CreateBudgetInput } from "@/lib/api"
-import { formatCurrency, formatPercent } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { AlertTriangle, CheckCircle, Loader2, PiggyBank, Plus, Trash2 } from "lucide-react"
+import { BudgetWithSpent, CreateBudgetInput, api } from "@/lib/api"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import {
   Dialog,
   DialogContent,
@@ -23,8 +17,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { formatCurrency, formatPercent, toAPIDate } from "@/lib/utils"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
+import { useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
-import { Plus, Trash2, Loader2, PiggyBank, AlertTriangle, CheckCircle } from "lucide-react"
 
 const CATEGORIES = [
   "Housing",
@@ -82,7 +83,7 @@ export default function BudgetsPage() {
       category: formData.get("category") as string,
       amount: parseFloat(formData.get("amount") as string),
       period: formData.get("period") as string,
-      startDate: new Date().toISOString().split("T")[0],
+      startDate: new Date().toISOString(), // RFC3339 format for backend
     })
   }
 

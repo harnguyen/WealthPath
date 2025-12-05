@@ -84,7 +84,7 @@ export default function BudgetsPage() {
       category: formData.get("category") as string,
       amount: parseFloat(formData.get("amount") as string),
       period: formData.get("period") as string,
-      startDate: new Date().toISOString().split("T")[0],
+      startDate: new Date().toISOString(), // RFC3339 format for backend
     })
   }
 
