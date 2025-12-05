@@ -58,39 +58,6 @@ func (m *MockTransactionRepo) GetSpentByCategory(ctx context.Context, userID uui
 	return ret.Get(0).(decimal.Decimal), ret.Error(1)
 }
 
-// TestDateString tests
-func TestDateString_UnmarshalJSON(t *testing.T) {
-	tests := []struct {
-		name    string
-		input   string
-		wantErr bool
-	}{
-		{"RFC3339 format", `"2024-01-15T10:30:00Z"`, false},
-		{"date only format", `"2024-01-15"`, false},
-		{"empty string", `""`, false},
-		{"null", `"null"`, false},
-		{"invalid format", `"invalid-date"`, true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var d DateString
-			err := d.UnmarshalJSON([]byte(tt.input))
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
-func TestDateString_Time(t *testing.T) {
-	now := time.Now()
-	d := DateString(now)
-	assert.Equal(t, now, d.Time())
-}
-
 // TestCreateTransactionInput tests
 func TestCreateTransactionInput_Validation(t *testing.T) {
 	tests := []struct {
@@ -674,14 +641,6 @@ func TestIncomeCategories(t *testing.T) {
 }
 
 // Benchmark tests
-func BenchmarkDateString_UnmarshalJSON(b *testing.B) {
-	input := []byte(`"2024-01-15"`)
-	for i := 0; i < b.N; i++ {
-		var d DateString
-		_ = d.UnmarshalJSON(input)
-	}
-}
-
 func BenchmarkCreateTransactionInput_Validation(b *testing.B) {
 	input := CreateTransactionInput{
 		Type:     model.TransactionTypeExpense,

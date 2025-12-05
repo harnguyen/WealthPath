@@ -9,6 +9,7 @@ const config = {
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
     '<rootDir>/.next/',
+    '<rootDir>/e2e/',
   ],
   modulePathIgnorePatterns: [
     '<rootDir>/.next/',

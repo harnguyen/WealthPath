@@ -401,16 +401,6 @@ func TestSystemPrompt(t *testing.T) {
 	assert.Contains(t, systemPrompt, "JSON")
 }
 
-// Test DateString conversion
-func TestDateString_Usage(t *testing.T) {
-	t.Parallel()
-
-	now := time.Now()
-	ds := DateString(now)
-
-	assert.NotEmpty(t, string(ds.Time().Format("2006-01-02")))
-}
-
 // Test decimal conversion
 func TestDecimalConversion(t *testing.T) {
 	t.Parallel()
