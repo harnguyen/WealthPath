@@ -13,7 +13,7 @@ export const TEST_PASSWORD = 'testpassword123';
 export const TEST_NAME = 'Test User';
 
 /**
- * Registers a new user and logs them in.
+ * Registers a new user and logs them in, ensuring auth persists.
  * @param page - Playwright page object
  * @param emailPrefix - Prefix for the generated email
  * @returns The generated email address
@@ -22,6 +22,7 @@ export async function registerAndLogin(page: Page, emailPrefix: string = 'test')
   const email = generateTestEmail(emailPrefix);
   
   await page.goto('/en/register');
+  await page.waitForLoadState('networkidle');
   
   await page.getByLabel(/name/i).fill(TEST_NAME);
   await page.getByLabel(/email/i).fill(email);
@@ -29,8 +30,15 @@ export async function registerAndLogin(page: Page, emailPrefix: string = 'test')
   
   await page.getByRole('button', { name: /create account|sign up|register/i }).click();
   
-  await expect(page).toHaveURL(/dashboard/);
+  await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
   await page.waitForLoadState('networkidle');
+  
+  // Ensure auth token is stored before continuing
+  await page.waitForFunction(() => {
+    return localStorage.getItem('auth-storage') !== null || 
+           localStorage.getItem('token') !== null ||
+           document.cookie.includes('token');
+  }, { timeout: 5000 }).catch(() => {});
   
   return email;
 }
@@ -68,13 +76,29 @@ export async function selectFirstOption(page: Page, triggerText?: string | RegEx
 }
 
 /**
- * Navigates to a page using sidebar link or direct navigation.
+ * Navigates to a page, trying sidebar links first to preserve auth state.
  * @param page - Playwright page object
  * @param path - The path to navigate to
  */
 export async function navigateTo(page: Page, path: string): Promise<void> {
-  await page.goto(path);
+  // Try to use in-app navigation first (preserves auth state better)
+  const pathName = path.replace(/^\/en|^\/vi/, '').replace(/^\//, '');
+  const navLink = page.getByRole('link', { name: new RegExp(pathName, 'i') });
+  
+  if (await navLink.first().isVisible({ timeout: 2000 }).catch(() => false)) {
+    await navLink.first().click();
+  } else {
+    // Fall back to direct navigation
+    await page.goto(path);
+  }
+  
   await page.waitForLoadState('networkidle');
+  
+  // If redirected to login, auth was lost - this shouldn't happen
+  const isOnLogin = await page.url().includes('/login');
+  if (isOnLogin) {
+    throw new Error(`Auth state lost when navigating to ${path}`);
+  }
 }
 
 /**

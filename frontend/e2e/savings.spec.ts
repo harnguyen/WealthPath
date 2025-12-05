@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { registerAndLogin, waitForDialog, waitForDialogToClose, navigateTo } from './helpers';
+import { expect, test } from '@playwright/test';
+import { navigateTo, registerAndLogin, waitForDialog, waitForDialogToClose } from './helpers';
 
 test.describe('Savings Goals', () => {
   test.beforeEach(async ({ page }) => {
