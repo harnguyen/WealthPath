@@ -260,6 +260,26 @@
     "month": "Month",
     "principal": "Principal"
   },
+  "rates": {
+    "title": "Interest Rates",
+    "subtitle": "Compare bank interest rates in Vietnam",
+    "highestRate": "Highest Rate",
+    "lowestRate": "Lowest Rate",
+    "averageRate": "Average Rate",
+    "perYear": "per year",
+    "selectTerm": "Select term",
+    "byRate": "By rate",
+    "byBank": "By bank",
+    "update": "Update",
+    "loadSampleData": "Load sample data",
+    "noData": "No interest rate data available",
+    "supportedBanks": "Supported Banks",
+    "dataFrom": "Data from {count} banks",
+    "highest": "Highest",
+    "deposit": "Savings Deposit",
+    "loan": "Personal Loan",
+    "mortgage": "Mortgage"
+  },
   "recurring": {
     "title": "Recurring Transactions",
     "subtitle": "Manage your recurring income and expenses",

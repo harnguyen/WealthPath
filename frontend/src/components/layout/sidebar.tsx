@@ -3,6 +3,7 @@
 import { useState } from "react"
 import {
   ArrowUpDown,
+  Building2,
   Calculator,
   CreditCard,
   LayoutDashboard,
@@ -38,6 +39,7 @@ export function Sidebar() {
     { name: t('budgets.title'), href: `/${locale}/budgets`, icon: PiggyBank, key: 'budgets' },
     { name: t('savings.title'), href: `/${locale}/savings`, icon: Target, key: 'savings' },
     { name: t('debts.title'), href: `/${locale}/debts`, icon: CreditCard, key: 'debts' },
+    { name: t('rates.title'), href: `/${locale}/rates`, icon: Building2, key: 'rates' },
     { name: t('calculator.title'), href: `/${locale}/calculator`, icon: Calculator, key: 'calculator' },
   ]
 

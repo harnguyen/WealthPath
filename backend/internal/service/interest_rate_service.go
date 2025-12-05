@@ -8,16 +8,35 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/wealthpath/backend/internal/model"
 	"github.com/wealthpath/backend/internal/repository"
+	"github.com/wealthpath/backend/internal/scraper"
 )
 
 // InterestRateService handles interest rate operations
 type InterestRateService struct {
-	repo repository.InterestRateRepository
+	repo    repository.InterestRateRepository
+	scraper *scraper.Scraper
 }
 
 // NewInterestRateService creates a new interest rate service
 func NewInterestRateService(repo repository.InterestRateRepository) *InterestRateService {
-	return &InterestRateService{repo: repo}
+	return &InterestRateService{
+		repo:    repo,
+		scraper: scraper.NewScraper(),
+	}
+}
+
+// ScrapeAndUpdateRates scrapes rates from all banks and updates the database
+func (s *InterestRateService) ScrapeAndUpdateRates(ctx context.Context) (int, error) {
+	rates, err := s.scraper.ScrapeAll(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("scrape rates: %w", err)
+	}
+
+	if err := s.BulkUpsertRates(ctx, rates); err != nil {
+		return 0, fmt.Errorf("upsert rates: %w", err)
+	}
+
+	return len(rates), nil
 }
 
 // ListRates returns interest rates with optional filters
@@ -38,6 +57,11 @@ func (s *InterestRateService) CompareRates(ctx context.Context, productType stri
 // GetBanks returns list of supported banks
 func (s *InterestRateService) GetBanks() []model.Bank {
 	return model.VietnameseBanks
+}
+
+// GetRateHistory returns historical rate data for a specific bank/product/term
+func (s *InterestRateService) GetRateHistory(ctx context.Context, bankCode, productType string, termMonths, days int) ([]repository.RateHistoryEntry, error) {
+	return s.repo.GetHistory(ctx, bankCode, productType, termMonths, days)
 }
 
 // UpsertRate creates or updates an interest rate

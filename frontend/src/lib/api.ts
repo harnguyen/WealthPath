@@ -255,6 +255,35 @@ class ApiClient {
   async getUpcomingBills() {
     return this.request<UpcomingBill[]>("/api/recurring/upcoming")
   }
+
+  // Interest Rates
+  async getInterestRates(params?: { type?: string; term?: string; bank?: string }) {
+    return this.request<InterestRate[]>("/api/interest-rates", { params: params as Record<string, string> })
+  }
+
+  async getBestRates(params: { type?: string; term: string; limit?: string }) {
+    return this.request<InterestRate[]>("/api/interest-rates/best", { params: params as Record<string, string> })
+  }
+
+  async compareRates(params: { type?: string; term: string }) {
+    return this.request<InterestRate[]>("/api/interest-rates/compare", { params: params as Record<string, string> })
+  }
+
+  async getBanks() {
+    return this.request<Bank[]>("/api/interest-rates/banks")
+  }
+
+  async getRateHistory(params: { bank: string; type?: string; term: string; days?: string }) {
+    return this.request<RateHistoryEntry[]>("/api/interest-rates/history", { params: params as Record<string, string> })
+  }
+
+  async seedRates() {
+    return this.request<{ message: string }>("/api/interest-rates/seed", { method: "POST" })
+  }
+
+  async scrapeRates() {
+    return this.request<{ message: string; count: number }>("/api/interest-rates/scrape", { method: "POST" })
+  }
 }
 
 export const api = new ApiClient()
@@ -512,4 +541,37 @@ export const FREQUENCY_OPTIONS = [
   { value: "monthly", label: "Monthly" },
   { value: "yearly", label: "Yearly" },
 ] as const
+
+// Interest Rate Types
+export interface InterestRate {
+  id: number
+  bankCode: string
+  bankName: string
+  bankLogo?: string
+  productType: string
+  termMonths: number
+  termLabel: string
+  rate: string
+  minAmount?: string
+  maxAmount?: string
+  currency: string
+  effectiveDate: string
+  scrapedAt: string
+}
+
+export interface Bank {
+  code: string
+  name: string
+  nameVi: string
+  logo: string
+  website: string
+}
+
+export interface RateHistoryEntry {
+  bankCode: string
+  productType: string
+  termMonths: number
+  rate: string
+  recordedDate: string
+}
 

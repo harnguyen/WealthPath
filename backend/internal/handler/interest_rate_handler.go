@@ -154,6 +154,60 @@ func (h *InterestRateHandler) GetBanks(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, banks)
 }
 
+// GetHistory godoc
+// @Summary Get historical interest rates
+// @Description Get historical rate data for charting
+// @Tags interest-rates
+// @Accept json
+// @Produce json
+// @Param bank query string true "Bank code (vcb, tcb, etc.)"
+// @Param type query string false "Product type (deposit, loan, mortgage)" default(deposit)
+// @Param term query int true "Term in months"
+// @Param days query int false "Number of days of history" default(90)
+// @Success 200 {array} repository.RateHistoryEntry
+// @Router /api/interest-rates/history [get]
+func (h *InterestRateHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	bankCode := r.URL.Query().Get("bank")
+	if bankCode == "" {
+		respondError(w, http.StatusBadRequest, "bank parameter is required")
+		return
+	}
+
+	productType := r.URL.Query().Get("type")
+	if productType == "" {
+		productType = "deposit"
+	}
+
+	termStr := r.URL.Query().Get("term")
+	if termStr == "" {
+		respondError(w, http.StatusBadRequest, "term parameter is required")
+		return
+	}
+
+	termMonths, err := strconv.Atoi(termStr)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "invalid term parameter")
+		return
+	}
+
+	days := 90
+	if daysStr := r.URL.Query().Get("days"); daysStr != "" {
+		if d, err := strconv.Atoi(daysStr); err == nil && d > 0 {
+			days = d
+		}
+	}
+
+	history, err := h.service.GetRateHistory(ctx, bankCode, productType, termMonths, days)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to fetch rate history")
+		return
+	}
+
+	respondJSON(w, http.StatusOK, history)
+}
+
 // SeedRates godoc
 // @Summary Seed default interest rates
 // @Description Populate database with sample interest rates (admin only)
@@ -171,5 +225,28 @@ func (h *InterestRateHandler) SeedRates(w http.ResponseWriter, r *http.Request) 
 	}
 
 	respondJSON(w, http.StatusOK, map[string]string{"message": "Interest rates seeded successfully"})
+}
+
+// ScrapeRates godoc
+// @Summary Scrape live interest rates from banks
+// @Description Scrape and update interest rates from Vietnamese banks
+// @Tags interest-rates
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /api/interest-rates/scrape [post]
+func (h *InterestRateHandler) ScrapeRates(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	count, err := h.service.ScrapeAndUpdateRates(ctx)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to scrape rates: "+err.Error())
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"message": "Interest rates scraped successfully",
+		"count":   count,
+	})
 }
 

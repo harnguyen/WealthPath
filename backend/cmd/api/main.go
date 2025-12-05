@@ -133,7 +133,9 @@ func main() {
 	r.Get("/api/interest-rates/best", interestRateHandler.GetBestRates)
 	r.Get("/api/interest-rates/compare", interestRateHandler.CompareRates)
 	r.Get("/api/interest-rates/banks", interestRateHandler.GetBanks)
-	r.Post("/api/interest-rates/seed", interestRateHandler.SeedRates) // Admin: seed sample data
+	r.Get("/api/interest-rates/history", interestRateHandler.GetHistory)
+	r.Post("/api/interest-rates/seed", interestRateHandler.SeedRates)     // Admin: seed sample data
+	r.Post("/api/interest-rates/scrape", interestRateHandler.ScrapeRates) // Admin: scrape live rates
 
 	// Protected routes
 	r.Group(func(r chi.Router) {

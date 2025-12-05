@@ -260,6 +260,26 @@
     "month": "Tháng",
     "principal": "Gốc"
   },
+  "rates": {
+    "title": "Lãi suất",
+    "subtitle": "So sánh lãi suất ngân hàng Việt Nam",
+    "highestRate": "Lãi suất cao nhất",
+    "lowestRate": "Lãi suất thấp nhất",
+    "averageRate": "Lãi suất trung bình",
+    "perYear": "/ năm",
+    "selectTerm": "Chọn kỳ hạn",
+    "byRate": "Theo lãi suất",
+    "byBank": "Theo ngân hàng",
+    "update": "Cập nhật",
+    "loadSampleData": "Tải dữ liệu mẫu",
+    "noData": "Chưa có dữ liệu lãi suất",
+    "supportedBanks": "Ngân hàng được hỗ trợ",
+    "dataFrom": "Dữ liệu từ {count} ngân hàng",
+    "highest": "Cao nhất",
+    "deposit": "Tiết kiệm",
+    "loan": "Vay tiêu dùng",
+    "mortgage": "Vay mua nhà"
+  },
   "recurring": {
     "title": "Giao dịch định kỳ",
     "subtitle": "Quản lý thu nhập và chi tiêu định kỳ của bạn",

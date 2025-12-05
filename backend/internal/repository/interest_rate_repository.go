@@ -3,10 +3,21 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/shopspring/decimal"
 	"github.com/wealthpath/backend/internal/model"
 )
+
+// RateHistoryEntry represents a historical rate entry
+type RateHistoryEntry struct {
+	BankCode     string          `db:"bank_code" json:"bankCode"`
+	ProductType  string          `db:"product_type" json:"productType"`
+	TermMonths   int             `db:"term_months" json:"termMonths"`
+	Rate         decimal.Decimal `db:"rate" json:"rate"`
+	RecordedDate time.Time       `db:"recorded_date" json:"recordedDate"`
+}
 
 // InterestRateRepository defines the interface for interest rate data access
 type InterestRateRepository interface {
@@ -14,6 +25,7 @@ type InterestRateRepository interface {
 	GetBestRates(ctx context.Context, productType string, termMonths int, limit int) ([]model.InterestRate, error)
 	Upsert(ctx context.Context, rate *model.InterestRate) error
 	DeleteOldRates(ctx context.Context, daysOld int) error
+	GetHistory(ctx context.Context, bankCode, productType string, termMonths, days int) ([]RateHistoryEntry, error)
 }
 
 type interestRateRepository struct {
@@ -118,5 +130,25 @@ func (r *interestRateRepository) DeleteOldRates(ctx context.Context, daysOld int
 		return fmt.Errorf("delete old rates: %w", err)
 	}
 	return nil
+}
+
+// GetHistory returns historical rate data for charting
+func (r *interestRateRepository) GetHistory(ctx context.Context, bankCode, productType string, termMonths, days int) ([]RateHistoryEntry, error) {
+	query := `
+		SELECT bank_code, product_type, term_months, rate, recorded_date
+		FROM interest_rate_history
+		WHERE bank_code = $1 
+		  AND product_type = $2 
+		  AND term_months = $3
+		  AND recorded_date >= CURRENT_DATE - INTERVAL '%d days'
+		ORDER BY recorded_date ASC
+	`
+
+	var history []RateHistoryEntry
+	if err := r.db.SelectContext(ctx, &history, fmt.Sprintf(query, days), bankCode, productType, termMonths); err != nil {
+		return nil, fmt.Errorf("get rate history: %w", err)
+	}
+
+	return history, nil
 }
 
