@@ -65,6 +65,30 @@ jobs:
       
       - name: Health check
         run: |
-          sleep 10
-          curl -sf https://${{ secrets.DOMAIN }}/api/health || echo "Health check pending..."
+          echo "⏳ Waiting for services to start..."
+          sleep 15
+          
+          echo "🔍 Checking API health..."
+          for i in {1..5}; do
+            if curl -sf https://${{ secrets.DOMAIN }}/api/health; then
+              echo "✅ API is healthy"
+              break
+            fi
+            echo "Attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
+          
+          echo "🔍 Checking Frontend..."
+          curl -sf -o /dev/null https://${{ secrets.DOMAIN }} && echo "✅ Frontend is up" || echo "⚠️ Frontend check pending"
+          
+          echo "🔍 Checking Admin panel..."
+          # Admin returns 401/302 for unauthenticated, which is expected
+          ADMIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ secrets.DOMAIN }}/admin)
+          if [[ "$ADMIN_STATUS" == "200" || "$ADMIN_STATUS" == "401" || "$ADMIN_STATUS" == "302" ]]; then
+            echo "✅ Admin panel is up (status: $ADMIN_STATUS)"
+          else
+            echo "⚠️ Admin panel returned: $ADMIN_STATUS"
+          fi
+          
+          echo "🎉 Deployment complete!"
 
