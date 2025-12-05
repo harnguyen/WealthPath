@@ -1,0 +1,131 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - generic:
+    - complementary:
+      - generic:
+        - generic:
+          - img
+        - generic: WealthPath
+      - navigation:
+        - link:
+          - /url: /en/dashboard
+          - img
+          - text: Dashboard
+        - link:
+          - /url: /en/transactions
+          - img
+          - text: Transactions
+        - link:
+          - /url: /en/recurring
+          - img
+          - text: Recurring Transactions
+        - link:
+          - /url: /en/budgets
+          - img
+          - text: Budgets
+        - link:
+          - /url: /en/savings
+          - img
+          - text: Savings Goals
+        - link:
+          - /url: /en/debts
+          - img
+          - text: Debts
+        - link:
+          - /url: /en/calculator
+          - img
+          - text: Calculator
+      - generic:
+        - generic:
+          - generic: T
+          - generic:
+            - paragraph: Test User
+            - paragraph: budget+1764950258497@example.com
+        - generic:
+          - combobox:
+            - img
+            - generic: English
+            - img
+        - generic:
+          - link:
+            - /url: /en/settings
+            - img
+            - text: Settings
+          - button:
+            - img
+    - main:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - heading [level=1]: Budgets
+              - paragraph: Manage your spending limits
+            - button [expanded]:
+              - img
+              - text: Create Budget
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - paragraph: Total Budget
+                    - paragraph: $0.00
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - paragraph: Total Spent
+                    - paragraph: $0.00
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - paragraph: Over Budget
+                    - paragraph: 0 categories
+          - generic:
+            - generic:
+              - img
+              - paragraph: No budgets set up yet
+              - paragraph: Create a budget to start tracking your spending
+    - button:
+      - img
+  - list:
+    - listitem [ref=e1]:
+      - generic [ref=e2]:
+        - generic [ref=e3]: Error
+        - generic [ref=e4]: invalid request body
+      - button [ref=e5] [cursor=pointer]:
+        - img [ref=e6]
+  - alert
+  - generic: "0"
+  - dialog "Create Budget" [active] [ref=e10]:
+    - heading "Create Budget" [level=2] [ref=e12]
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - text: Category
+        - combobox [ref=e15] [cursor=pointer]:
+          - generic: Housing
+          - img [ref=e16]
+        - combobox [ref=e18]
+      - generic [ref=e19]:
+        - text: Monthly Limit
+        - spinbutton "Monthly Limit" [ref=e20]: "500"
+      - generic [ref=e21]:
+        - text: Period
+        - combobox [ref=e22] [cursor=pointer]:
+          - generic: Monthly
+          - img [ref=e23]
+        - combobox [ref=e25]
+      - button "Create Budget" [ref=e26] [cursor=pointer]
+    - button "Close" [ref=e27] [cursor=pointer]:
+      - img [ref=e28]
+      - generic [ref=e31]: Close
+```

@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslations } from "next-intl"
 import {
   Plus,
   Trash2,
@@ -40,12 +41,12 @@ import {
 } from "lucide-react"
 
 const DEBT_TYPES = [
-  { value: "mortgage", label: "Mortgage", icon: Home },
-  { value: "auto_loan", label: "Auto Loan", icon: Car },
-  { value: "student_loan", label: "Student Loan", icon: GraduationCap },
-  { value: "credit_card", label: "Credit Card", icon: CreditCard },
-  { value: "personal_loan", label: "Personal Loan", icon: Wallet },
-  { value: "other", label: "Other", icon: DollarSign },
+  { value: "mortgage", labelKey: "types.mortgage", icon: Home },
+  { value: "auto_loan", labelKey: "types.autoLoan", icon: Car },
+  { value: "student_loan", labelKey: "types.studentLoan", icon: GraduationCap },
+  { value: "credit_card", labelKey: "types.creditCard", icon: CreditCard },
+  { value: "personal_loan", labelKey: "types.personalLoan", icon: Wallet },
+  { value: "other", labelKey: "types.other", icon: DollarSign },
 ]
 
 export default function DebtsPage() {
@@ -55,6 +56,7 @@ export default function DebtsPage() {
   const [selectedDebtId, setSelectedDebtId] = useState<string | null>(null)
   const { toast } = useToast()
   const queryClient = useQueryClient()
+  const t = useTranslations("debts")
 
   const { data: debts, isLoading } = useQuery<Debt[]>({
     queryKey: ["debts"],
@@ -73,7 +75,7 @@ export default function DebtsPage() {
       queryClient.invalidateQueries({ queryKey: ["debts"] })
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
       setIsOpen(false)
-      toast({ title: "Debt added" })
+      toast({ title: t("debtAdded") })
     },
   })
 
@@ -85,7 +87,7 @@ export default function DebtsPage() {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
       setPaymentDebtId(null)
       setPaymentAmount("")
-      toast({ title: "Payment recorded!" })
+      toast({ title: t("paymentRecorded") })
     },
   })
 
@@ -94,7 +96,7 @@ export default function DebtsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["debts"] })
       queryClient.invalidateQueries({ queryKey: ["dashboard"] })
-      toast({ title: "Debt removed" })
+      toast({ title: t("debtRemoved") })
     },
   })
 
@@ -123,36 +125,36 @@ export default function DebtsPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold">Debt Manager</h1>
-          <p className="text-muted-foreground mt-1">Track and pay off your debts</p>
+          <h1 className="text-3xl font-display font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Add Debt
+              {t("addDebt")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Add Debt</DialogTitle>
+              <DialogTitle>{t("addDebt")}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" placeholder="e.g., Chase Credit Card" required />
+                <Label htmlFor="name">{t("debtName")}</Label>
+                <Input id="name" name="name" placeholder={t("debtNamePlaceholder")} required />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
+                <Label htmlFor="type">{t("debtType")}</Label>
                 <Select name="type" required>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder={t("debtType")} />
                   </SelectTrigger>
                   <SelectContent>
                     {DEBT_TYPES.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
-                        {type.label}
+                        {t(type.labelKey)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -161,7 +163,7 @@ export default function DebtsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="originalAmount">Original Amount</Label>
+                  <Label htmlFor="originalAmount">{t("totalAmount")}</Label>
                   <Input
                     id="originalAmount"
                     name="originalAmount"
@@ -172,7 +174,7 @@ export default function DebtsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="currentBalance">Current Balance</Label>
+                  <Label htmlFor="currentBalance">{t("currentBalance")}</Label>
                   <Input
                     id="currentBalance"
                     name="currentBalance"
@@ -186,7 +188,7 @@ export default function DebtsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="interestRate">Interest Rate (%)</Label>
+                  <Label htmlFor="interestRate">{t("interestRate")} (%)</Label>
                   <Input
                     id="interestRate"
                     name="interestRate"
@@ -197,7 +199,7 @@ export default function DebtsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="minimumPayment">Min Payment</Label>
+                  <Label htmlFor="minimumPayment">{t("minimumPayment")}</Label>
                   <Input
                     id="minimumPayment"
                     name="minimumPayment"
@@ -211,7 +213,7 @@ export default function DebtsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="dueDay">Due Day</Label>
+                  <Label htmlFor="dueDay">{t("dueDate")}</Label>
                   <Input
                     id="dueDay"
                     name="dueDay"
@@ -223,7 +225,7 @@ export default function DebtsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="startDate">Start Date</Label>
+                  <Label htmlFor="startDate">{t("startDate")}</Label>
                   <Input id="startDate" name="startDate" type="date" required />
                 </div>
               </div>
@@ -232,7 +234,7 @@ export default function DebtsPage() {
                 {createMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  "Add Debt"
+                  t("addDebt")
                 )}
               </Button>
             </form>
@@ -249,7 +251,7 @@ export default function DebtsPage() {
                 <CreditCard className="w-6 h-6 text-destructive" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Debt</p>
+                <p className="text-sm text-muted-foreground">{t("totalDebt")}</p>
                 <p className="text-2xl font-bold text-destructive">{formatCurrency(totalDebt)}</p>
               </div>
             </div>
@@ -263,7 +265,7 @@ export default function DebtsPage() {
                 <Calendar className="w-6 h-6 text-warning" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Monthly Minimum</p>
+                <p className="text-sm text-muted-foreground">{t("monthlyMinimum")}</p>
                 <p className="text-2xl font-bold">{formatCurrency(totalMinPayment)}</p>
               </div>
             </div>
@@ -277,7 +279,7 @@ export default function DebtsPage() {
                 <TrendingDown className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Avg Interest Rate</p>
+                <p className="text-sm text-muted-foreground">{t("avgInterestRate")}</p>
                 <p className="text-2xl font-bold">{avgInterest.toFixed(2)}%</p>
               </div>
             </div>
@@ -310,7 +312,7 @@ export default function DebtsPage() {
                     </div>
                     <div>
                       <CardTitle className="text-lg">{debt.name}</CardTitle>
-                      <CardDescription>{debtType?.label}</CardDescription>
+                      <CardDescription>{debtType ? t(debtType.labelKey) : ""}</CardDescription>
                     </div>
                   </div>
                   <Button
@@ -325,28 +327,28 @@ export default function DebtsPage() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-muted-foreground">Balance</p>
+                      <p className="text-muted-foreground">{t("balance")}</p>
                       <p className="text-xl font-bold text-destructive">
                         {formatCurrency(debt.currentBalance)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Interest Rate</p>
+                      <p className="text-muted-foreground">{t("interestRate")}</p>
                       <p className="text-xl font-bold">{debt.interestRate}%</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Min Payment</p>
+                      <p className="text-muted-foreground">{t("minPayment")}</p>
                       <p className="font-medium">{formatCurrency(debt.minimumPayment)}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Due Day</p>
-                      <p className="font-medium">{debt.dueDay}th of month</p>
+                      <p className="text-muted-foreground">{t("dueDay")}</p>
+                      <p className="font-medium">{debt.dueDay} {t("dayOfMonth")}</p>
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Paid off</span>
+                      <span className="text-muted-foreground">{t("paidOff")}</span>
                       <span className="font-medium">{formatPercent(paidOff)}</span>
                     </div>
                     <Progress value={paidOff} className="h-2" indicatorClassName="bg-success" />
@@ -369,16 +371,16 @@ export default function DebtsPage() {
                           onClick={() => setPaymentDebtId(debt.id)}
                         >
                           <DollarSign className="w-4 h-4 mr-2" />
-                          Payment
+                          {t("payment")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Make Payment</DialogTitle>
+                          <DialogTitle>{t("makePayment")}</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label>Amount</Label>
+                            <Label>{t("paymentAmount")}</Label>
                             <Input
                               type="number"
                               step="0.01"
@@ -402,7 +404,7 @@ export default function DebtsPage() {
                             {paymentMutation.isPending ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
-                              "Record Payment"
+                              t("recordPayment")
                             )}
                           </Button>
                         </div>
@@ -416,12 +418,12 @@ export default function DebtsPage() {
                       <DialogTrigger asChild>
                         <Button variant="outline" className="flex-1">
                           <Calculator className="w-4 h-4 mr-2" />
-                          Payoff Plan
+                          {t("payoffPlan")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-lg">
                         <DialogHeader>
-                          <DialogTitle>Payoff Plan for {debt.name}</DialogTitle>
+                          <DialogTitle>{t("payoffPlanFor")} {debt.name}</DialogTitle>
                         </DialogHeader>
                         {isPlanLoading ? (
                           <div className="py-8 flex justify-center">
@@ -431,21 +433,21 @@ export default function DebtsPage() {
                           <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                               <div className="p-4 bg-muted rounded-lg">
-                                <p className="text-sm text-muted-foreground">Monthly Payment</p>
+                                <p className="text-sm text-muted-foreground">{t("monthlyPayment")}</p>
                                 <p className="text-xl font-bold">{formatCurrency(payoffPlan.monthlyPayment)}</p>
                               </div>
                               <div className="p-4 bg-muted rounded-lg">
-                                <p className="text-sm text-muted-foreground">Payoff Date</p>
+                                <p className="text-sm text-muted-foreground">{t("payoffDate")}</p>
                                 <p className="text-xl font-bold">{formatDate(payoffPlan.payoffDate)}</p>
                               </div>
                               <div className="p-4 bg-muted rounded-lg">
-                                <p className="text-sm text-muted-foreground">Total Interest</p>
+                                <p className="text-sm text-muted-foreground">{t("totalInterest")}</p>
                                 <p className="text-xl font-bold text-destructive">
                                   {formatCurrency(payoffPlan.totalInterest)}
                                 </p>
                               </div>
                               <div className="p-4 bg-muted rounded-lg">
-                                <p className="text-sm text-muted-foreground">Months Left</p>
+                                <p className="text-sm text-muted-foreground">{t("monthsLeft")}</p>
                                 <p className="text-xl font-bold">{payoffPlan.monthsToPayoff}</p>
                               </div>
                             </div>
@@ -454,11 +456,11 @@ export default function DebtsPage() {
                               <table className="w-full text-sm">
                                 <thead className="sticky top-0 bg-background">
                                   <tr className="border-b">
-                                    <th className="py-2 text-left">Month</th>
-                                    <th className="py-2 text-right">Payment</th>
-                                    <th className="py-2 text-right">Principal</th>
-                                    <th className="py-2 text-right">Interest</th>
-                                    <th className="py-2 text-right">Balance</th>
+                                    <th className="py-2 text-left">{t("month")}</th>
+                                    <th className="py-2 text-right">{t("payment")}</th>
+                                    <th className="py-2 text-right">{t("principal")}</th>
+                                    <th className="py-2 text-right">{t("interestRate")}</th>
+                                    <th className="py-2 text-right">{t("balance")}</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -488,9 +490,9 @@ export default function DebtsPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <CreditCard className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No debts tracked</p>
+            <p className="text-muted-foreground">{t("noDebts")}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Add a debt to start managing your payoff plan
+              {t("noDebtsDescription")}
             </p>
           </CardContent>
         </Card>

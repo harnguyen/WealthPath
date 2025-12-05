@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api, BudgetWithSpent, CreateBudgetInput } from "@/lib/api"
 import { formatCurrency, formatPercent } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { CurrencyInput } from "@/components/ui/currency-input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
 import { useTranslations } from "next-intl"
+import { useAuthStore } from "@/store/auth"
 import { Plus, Trash2, Loader2, PiggyBank, AlertTriangle, CheckCircle } from "lucide-react"
 
 const CATEGORIES = [
@@ -44,9 +45,12 @@ const CATEGORIES = [
 
 export default function BudgetsPage() {
   const [isOpen, setIsOpen] = useState(false)
+  const [amount, setAmount] = useState("")
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const t = useTranslations()
+  const { user } = useAuthStore()
+  const currency = user?.currency || "USD"
 
   const { data: budgets, isLoading } = useQuery<BudgetWithSpent[]>({
     queryKey: ["budgets"],
@@ -82,10 +86,11 @@ export default function BudgetsPage() {
     const formData = new FormData(e.currentTarget)
     createMutation.mutate({
       category: formData.get("category") as string,
-      amount: parseFloat(formData.get("amount") as string),
+      amount: parseFloat(amount.replace(/,/g, "")),
       period: formData.get("period") as string,
       startDate: new Date().toISOString(), // RFC3339 format for backend
     })
+    setAmount("") // Reset after submit
   }
 
   const totalBudget = budgets?.reduce((sum, b) => sum + parseFloat(b.amount), 0) || 0
@@ -129,12 +134,11 @@ export default function BudgetsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="amount">{t('budgets.monthlyLimit')}</Label>
-                <Input
+                <CurrencyInput
                   id="amount"
-                  name="amount"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
+                  value={amount}
+                  onChange={setAmount}
+                  currency={currency}
                   required
                 />
               </div>
