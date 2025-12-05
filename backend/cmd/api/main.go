@@ -56,6 +56,7 @@ func main() {
 	savingsRepo := repository.NewSavingsGoalRepository(db)
 	debtRepo := repository.NewDebtRepository(db)
 	recurringRepo := repository.NewRecurringRepository(db)
+	interestRateRepo := repository.NewInterestRateRepository(db)
 
 	// Initialize services
 	userService := service.NewUserService(userRepo)
@@ -66,6 +67,7 @@ func main() {
 	recurringService := service.NewRecurringService(recurringRepo, transactionRepo)
 	dashboardService := service.NewDashboardService(transactionRepo, budgetRepo, savingsRepo, debtRepo)
 	aiService := service.NewAIService(transactionService, budgetService, savingsService)
+	interestRateService := service.NewInterestRateService(interestRateRepo)
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(userService)
@@ -77,6 +79,7 @@ func main() {
 	recurringHandler := handler.NewRecurringHandler(recurringService)
 	dashboardHandler := handler.NewDashboardHandler(dashboardService)
 	aiHandler := handler.NewAIHandler(aiService)
+	interestRateHandler := handler.NewInterestRateHandler(interestRateService)
 
 	r := chi.NewRouter()
 
@@ -124,6 +127,13 @@ func main() {
 	r.Get("/api/auth/{provider}", oauthHandler.OAuthLogin)
 	r.Get("/api/auth/{provider}/callback", oauthHandler.OAuthCallback)
 	r.Post("/api/auth/{provider}/token", oauthHandler.OAuthToken)
+
+	// Interest rates (public - no auth required)
+	r.Get("/api/interest-rates", interestRateHandler.ListRates)
+	r.Get("/api/interest-rates/best", interestRateHandler.GetBestRates)
+	r.Get("/api/interest-rates/compare", interestRateHandler.CompareRates)
+	r.Get("/api/interest-rates/banks", interestRateHandler.GetBanks)
+	r.Post("/api/interest-rates/seed", interestRateHandler.SeedRates) // Admin: seed sample data
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
