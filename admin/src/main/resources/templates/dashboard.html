@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Dashboard')}"></head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <nav th:replace="~{layout :: nav}"></nav>
+    
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <h1 class="text-2xl font-bold text-gray-900 mb-8">Dashboard Overview</h1>
+        
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Users -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Users</p>
+                        <p class="text-3xl font-bold text-gray-900" th:text="${stats.totalUsers}">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-sm text-green-600 mt-2">
+                    +<span th:text="${stats.newUsersThisWeek}">0</span> this week
+                </p>
+            </div>
+            
+            <!-- Total Transactions -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Transactions</p>
+                        <p class="text-3xl font-bold text-gray-900" th:text="${stats.totalTransactions}">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">
+                    <span th:text="${stats.transactionsToday}">0</span> today
+                </p>
+            </div>
+            
+            <!-- Total Income -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Income</p>
+                        <p class="text-3xl font-bold text-green-600" th:text="'$' + ${#numbers.formatDecimal(stats.totalIncome, 1, 'COMMA', 2, 'POINT')}">$0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">
+                    <span th:text="${stats.incomeTransactions}">0</span> transactions
+                </p>
+            </div>
+            
+            <!-- Total Expenses -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Expenses</p>
+                        <p class="text-3xl font-bold text-red-600" th:text="'$' + ${#numbers.formatDecimal(stats.totalExpenses, 1, 'COMMA', 2, 'POINT')}">$0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"/>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">
+                    <span th:text="${stats.expenseTransactions}">0</span> transactions
+                </p>
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Expenses by Category -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Expenses by Category</h3>
+                <canvas id="categoryChart" height="200"></canvas>
+            </div>
+            
+            <!-- Users by Currency -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Users by Currency</h3>
+                <canvas id="currencyChart" height="200"></canvas>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">User Breakdown</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">OAuth Users</span>
+                        <span class="font-medium" th:text="${stats.oAuthUsers}">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Email Users</span>
+                        <span class="font-medium" th:text="${stats.totalUsers - stats.oAuthUsers}">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">New Today</span>
+                        <span class="font-medium text-green-600" th:text="${stats.newUsersToday}">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Net Cash Flow</h3>
+                <p class="text-4xl font-bold" 
+                   th:classappend="${stats.netFlow >= 0} ? 'text-green-600' : 'text-red-600'"
+                   th:text="'$' + ${#numbers.formatDecimal(stats.netFlow, 1, 'COMMA', 2, 'POINT')}">$0</p>
+                <p class="text-sm text-gray-500 mt-2">Income - Expenses</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                <div class="space-y-2">
+                    <a href="/users" class="block w-full px-4 py-2 text-center bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition">
+                        Manage Users
+                    </a>
+                    <a href="/users?search=" class="block w-full px-4 py-2 text-center border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                        Search Users
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer th:replace="~{layout :: footer}"></footer>
+    
+    <script th:inline="javascript">
+        // Expenses by Category Chart
+        const categoryData = /*[[${stats.expensesByCategory}]]*/ {};
+        const categoryLabels = Object.keys(categoryData);
+        const categoryValues = Object.values(categoryData);
+        
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categoryValues,
+                    backgroundColor: [
+                        '#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', 
+                        '#EF4444', '#EC4899', '#6366F1', '#84CC16'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Users by Currency Chart
+        const currencyData = /*[[${stats.usersByCurrency}]]*/ {};
+        const currencyLabels = Object.keys(currencyData);
+        const currencyValues = Object.values(currencyData);
+        
+        new Chart(document.getElementById('currencyChart'), {
+            type: 'bar',
+            data: {
+                labels: currencyLabels,
+                datasets: [{
+                    label: 'Users',
+                    data: currencyValues,
+                    backgroundColor: '#8B5CF6'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

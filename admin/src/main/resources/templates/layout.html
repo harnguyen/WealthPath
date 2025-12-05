@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' - WealthPath Admin'">WealthPath Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<nav th:fragment="nav" class="bg-white shadow-sm border-b">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center">
+                <a href="/dashboard" class="text-xl font-bold text-violet-600">WealthPath Admin</a>
+                <div class="hidden md:flex ml-10 space-x-4">
+                    <a href="/dashboard" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-violet-600 hover:bg-violet-50">
+                        Dashboard
+                    </a>
+                    <a href="/users" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-violet-600 hover:bg-violet-50">
+                        Users
+                    </a>
+                </div>
+            </div>
+            <div class="flex items-center">
+                <span class="text-sm text-gray-500 mr-4" sec:authentication="name">Admin</span>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-md">
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<footer th:fragment="footer" class="bg-white border-t mt-auto py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <p class="text-center text-gray-400 text-sm">
+            WealthPath Admin &copy; 2024
+        </p>
+    </div>
+</footer>
+</html>
+
