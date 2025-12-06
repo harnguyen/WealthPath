@@ -1,0 +1,63 @@
+# Tailscale VPN Installation
+# Requires: tailscale_authkey in secrets.yml (generate from https://login.tailscale.com/admin/settings/keys)
+
+- name: Check if Tailscale is installed
+  command: which tailscale
+  register: tailscale_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Install Tailscale
+  when: tailscale_check.rc != 0
+  block:
+    - name: Add Tailscale GPG key
+      ansible.builtin.shell: |
+        curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+      args:
+        creates: /usr/share/keyrings/tailscale-archive-keyring.gpg
+
+    - name: Add Tailscale repository
+      ansible.builtin.shell: |
+        curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+      args:
+        creates: /etc/apt/sources.list.d/tailscale.list
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Tailscale package
+      apt:
+        name: tailscale
+        state: present
+
+- name: Enable and start Tailscale service
+  systemd:
+    name: tailscaled
+    enabled: yes
+    state: started
+
+- name: Check Tailscale status
+  command: tailscale status
+  register: tailscale_status
+  ignore_errors: true
+  changed_when: false
+
+- name: Authenticate Tailscale (if not connected)
+  when: 
+    - tailscale_authkey is defined
+    - tailscale_authkey | length > 0
+    - "'Logged out' in tailscale_status.stdout or tailscale_status.rc != 0"
+  command: tailscale up --authkey={{ tailscale_authkey }}
+  no_log: true  # Hide authkey from logs
+
+- name: Display Tailscale IP
+  command: tailscale ip -4
+  register: tailscale_ip
+  changed_when: false
+  ignore_errors: true
+
+- name: Show Tailscale status
+  debug:
+    msg: "Tailscale IP: {{ tailscale_ip.stdout | default('Not connected - run tailscale up manually or provide authkey') }}"
+

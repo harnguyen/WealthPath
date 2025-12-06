@@ -47,6 +47,11 @@
     - name: Configuration
       import_tasks: tasks/config.yml
 
+    # Tailscale VPN (for secure /logs access)
+    - name: Tailscale VPN
+      import_tasks: tasks/tailscale.yml
+      tags: [tailscale, vpn]
+
     # Docker Compose deployment
     - name: Deploy Application
       import_tasks: tasks/deploy.yml
