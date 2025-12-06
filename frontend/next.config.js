@@ -10,8 +10,8 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'upload.wikimedia.org',
-        pathname: '/wikipedia/**',
+        hostname: 'ui-avatars.com',
+        pathname: '/api/**',
       },
     ],
   },
