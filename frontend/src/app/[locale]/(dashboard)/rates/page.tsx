@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 import {
   Building2,
   TrendingUp,
@@ -175,9 +174,12 @@ export default function InterestRatesPage() {
     ? rates.reduce((sum, r) => sum + parseFloat(r.rate), 0) / rates.length
     : 0;
 
-  const getBankLogo = (bankCode: string) => {
+  const getBankInfo = (bankCode: string) => {
     const bank = banks.find((b) => b.code === bankCode);
-    return bank?.logo;
+    // Logo field now contains brand color (e.g., "#00843D")
+    const color = bank?.logo?.startsWith('#') ? bank.logo : '#6b7280';
+    const initials = bankCode.toUpperCase().slice(0, 3);
+    return { color, initials };
   };
 
   const toggleSort = (field: 'rate' | 'bank') => {
@@ -324,7 +326,7 @@ export default function InterestRatesPage() {
                 const rateValue = parseFloat(rate.rate);
                 const progress = maxRate > 0 ? (rateValue / maxRate) * 100 : 0;
                 const isTop = index === 0 && sortBy === 'rate' && sortOrder === 'desc';
-                const logo = getBankLogo(rate.bankCode);
+                const { color, initials } = getBankInfo(rate.bankCode);
 
                 return (
                   <Card
@@ -333,19 +335,12 @@ export default function InterestRatesPage() {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
-                        {/* Bank Logo/Icon */}
-                        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                          {logo ? (
-                            <Image
-                              src={logo}
-                              alt={rate.bankName}
-                              width={32}
-                              height={32}
-                              className="object-contain"
-                            />
-                          ) : (
-                            <Building2 className="h-6 w-6 text-muted-foreground" />
-                          )}
+                        {/* Bank Logo - Initials with brand color */}
+                        <div
+                          className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                          style={{ backgroundColor: color }}
+                        >
+                          {initials}
                         </div>
 
                         {/* Bank Info */}
@@ -483,30 +478,27 @@ export default function InterestRatesPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                  {banks.map((bank) => (
-                    <a
-                      key={bank.code}
-                      href={bank.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-2 overflow-hidden">
-                        {bank.logo ? (
-                          <Image
-                            src={bank.logo}
-                            alt={bank.name}
-                            width={24}
-                            height={24}
-                            className="object-contain"
-                          />
-                        ) : (
-                          <Building2 className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </div>
-                      <span className="text-xs font-medium text-center">{bank.name}</span>
-                    </a>
-                  ))}
+                  {banks.map((bank) => {
+                    const color = bank.logo?.startsWith('#') ? bank.logo : '#6b7280';
+                    const initials = bank.code.toUpperCase().slice(0, 3);
+                    return (
+                      <a
+                        key={bank.code}
+                        href={bank.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                      >
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center mb-2 text-white font-bold text-xs"
+                          style={{ backgroundColor: color }}
+                        >
+                          {initials}
+                        </div>
+                        <span className="text-xs font-medium text-center">{bank.name}</span>
+                      </a>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>

@@ -35,18 +35,18 @@ type Bank struct {
 }
 
 // VietnameseBanks is a list of major Vietnamese banks
-// Using UI Avatars as fallback - logos will show bank code initials with brand colors
+// Logo field contains brand color for frontend to render initials
 var VietnameseBanks = []Bank{
-	{Code: "vcb", Name: "Vietcombank", NameVi: "Ngân hàng TMCP Ngoại thương Việt Nam", Logo: "https://ui-avatars.com/api/?name=VCB&background=00843D&color=fff&size=64&bold=true", Website: "https://www.vietcombank.com.vn"},
-	{Code: "tcb", Name: "Techcombank", NameVi: "Ngân hàng TMCP Kỹ thương Việt Nam", Logo: "https://ui-avatars.com/api/?name=TCB&background=ED1C24&color=fff&size=64&bold=true", Website: "https://techcombank.com"},
-	{Code: "mb", Name: "MB Bank", NameVi: "Ngân hàng TMCP Quân đội", Logo: "https://ui-avatars.com/api/?name=MB&background=004B8D&color=fff&size=64&bold=true", Website: "https://www.mbbank.com.vn"},
-	{Code: "bidv", Name: "BIDV", NameVi: "Ngân hàng TMCP Đầu tư và Phát triển Việt Nam", Logo: "https://ui-avatars.com/api/?name=BIDV&background=00539B&color=fff&size=64&bold=true", Website: "https://www.bidv.com.vn"},
-	{Code: "agribank", Name: "Agribank", NameVi: "Ngân hàng Nông nghiệp và Phát triển Nông thôn", Logo: "https://ui-avatars.com/api/?name=AGR&background=E31837&color=fff&size=64&bold=true", Website: "https://www.agribank.com.vn"},
-	{Code: "vpbank", Name: "VPBank", NameVi: "Ngân hàng TMCP Việt Nam Thịnh Vượng", Logo: "https://ui-avatars.com/api/?name=VPB&background=00965E&color=fff&size=64&bold=true", Website: "https://www.vpbank.com.vn"},
-	{Code: "acb", Name: "ACB", NameVi: "Ngân hàng TMCP Á Châu", Logo: "https://ui-avatars.com/api/?name=ACB&background=003366&color=fff&size=64&bold=true", Website: "https://www.acb.com.vn"},
-	{Code: "sacombank", Name: "Sacombank", NameVi: "Ngân hàng TMCP Sài Gòn Thương Tín", Logo: "https://ui-avatars.com/api/?name=SCB&background=0066B3&color=fff&size=64&bold=true", Website: "https://www.sacombank.com.vn"},
-	{Code: "tpbank", Name: "TPBank", NameVi: "Ngân hàng TMCP Tiên Phong", Logo: "https://ui-avatars.com/api/?name=TPB&background=5C2D91&color=fff&size=64&bold=true", Website: "https://tpb.vn"},
-	{Code: "hdbank", Name: "HDBank", NameVi: "Ngân hàng TMCP Phát triển TP.HCM", Logo: "https://ui-avatars.com/api/?name=HDB&background=ED1C24&color=fff&size=64&bold=true", Website: "https://www.hdbank.com.vn"},
+	{Code: "vcb", Name: "Vietcombank", NameVi: "Ngân hàng TMCP Ngoại thương Việt Nam", Logo: "#00843D", Website: "https://www.vietcombank.com.vn"},
+	{Code: "tcb", Name: "Techcombank", NameVi: "Ngân hàng TMCP Kỹ thương Việt Nam", Logo: "#ED1C24", Website: "https://techcombank.com"},
+	{Code: "mb", Name: "MB Bank", NameVi: "Ngân hàng TMCP Quân đội", Logo: "#004B8D", Website: "https://www.mbbank.com.vn"},
+	{Code: "bidv", Name: "BIDV", NameVi: "Ngân hàng TMCP Đầu tư và Phát triển Việt Nam", Logo: "#00539B", Website: "https://www.bidv.com.vn"},
+	{Code: "agribank", Name: "Agribank", NameVi: "Ngân hàng Nông nghiệp và Phát triển Nông thôn", Logo: "#E31837", Website: "https://www.agribank.com.vn"},
+	{Code: "vpbank", Name: "VPBank", NameVi: "Ngân hàng TMCP Việt Nam Thịnh Vượng", Logo: "#00965E", Website: "https://www.vpbank.com.vn"},
+	{Code: "acb", Name: "ACB", NameVi: "Ngân hàng TMCP Á Châu", Logo: "#003366", Website: "https://www.acb.com.vn"},
+	{Code: "sacombank", Name: "Sacombank", NameVi: "Ngân hàng TMCP Sài Gòn Thương Tín", Logo: "#0066B3", Website: "https://www.sacombank.com.vn"},
+	{Code: "tpbank", Name: "TPBank", NameVi: "Ngân hàng TMCP Tiên Phong", Logo: "#5C2D91", Website: "https://tpb.vn"},
+	{Code: "hdbank", Name: "HDBank", NameVi: "Ngân hàng TMCP Phát triển TP.HCM", Logo: "#ED1C24", Website: "https://www.hdbank.com.vn"},
 }
 
 // StandardTerms defines common deposit term periods in months
