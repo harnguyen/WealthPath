@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import {
   ArrowUpDown,
   Building2,
@@ -15,6 +14,7 @@ import {
   Target,
   TrendingUp,
 } from "lucide-react"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useLocale, useTranslations } from 'next-intl'
 
 import { Button } from "@/components/ui/button"
@@ -23,7 +23,7 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/store/auth"
 import { usePathname } from "next/navigation"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { useState } from "react"
 
 export function Sidebar() {
   const pathname = usePathname()
