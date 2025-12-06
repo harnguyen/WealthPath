@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 import {
   Building2,
   TrendingUp,
@@ -77,18 +78,29 @@ export default function InterestRatesPage() {
     'mb',
   ]);
 
-  useEffect(() => {
-    fetchBanks();
-    fetchRates();
-  }, [selectedTerm, selectedType]);
-
-  useEffect(() => {
-    if (banks.length > 0) {
-      fetchHistory();
+  const fetchBanks = useCallback(async () => {
+    try {
+      const data = await api.getBanks();
+      setBanks(data);
+    } catch (error) {
+      console.error('Failed to fetch banks:', error);
     }
-  }, [selectedTerm, selectedType, selectedBanksForChart, banks]);
+  }, []);
 
-  const fetchHistory = async () => {
+  const fetchRates = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await api.compareRates({ type: selectedType, term: selectedTerm });
+      setRates(data || []);
+    } catch (error) {
+      console.error('Failed to fetch rates:', error);
+      setRates([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedType, selectedTerm]);
+
+  const fetchHistory = useCallback(async () => {
     // Fetch history for selected banks
     const historyPromises = selectedBanksForChart.map(async (bankCode) => {
       try {
@@ -124,29 +136,18 @@ export default function InterestRatesPage() {
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
     setHistoryData(chartData);
-  };
+  }, [selectedBanksForChart, selectedType, selectedTerm]);
 
-  const fetchBanks = async () => {
-    try {
-      const data = await api.getBanks();
-      setBanks(data);
-    } catch (error) {
-      console.error('Failed to fetch banks:', error);
-    }
-  };
+  useEffect(() => {
+    fetchBanks();
+    fetchRates();
+  }, [fetchBanks, fetchRates]);
 
-  const fetchRates = async () => {
-    setLoading(true);
-    try {
-      const data = await api.compareRates({ type: selectedType, term: selectedTerm });
-      setRates(data || []);
-    } catch (error) {
-      console.error('Failed to fetch rates:', error);
-      setRates([]);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (banks.length > 0) {
+      fetchHistory();
     }
-  };
+  }, [banks.length, fetchHistory]);
 
   const seedRates = async () => {
     try {
@@ -323,6 +324,7 @@ export default function InterestRatesPage() {
                 const rateValue = parseFloat(rate.rate);
                 const progress = maxRate > 0 ? (rateValue / maxRate) * 100 : 0;
                 const isTop = index === 0 && sortBy === 'rate' && sortOrder === 'desc';
+                const logo = getBankLogo(rate.bankCode);
 
                 return (
                   <Card
@@ -332,15 +334,15 @@ export default function InterestRatesPage() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
                         {/* Bank Logo/Icon */}
-                        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                          {getBankLogo(rate.bankCode) ? (
-                            <img
-                              src={getBankLogo(rate.bankCode)}
+                        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                          {logo ? (
+                            <Image
+                              src={logo}
                               alt={rate.bankName}
-                              className="w-8 h-8 object-contain"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
+                              width={32}
+                              height={32}
+                              className="object-contain"
+                              unoptimized
                             />
                           ) : (
                             <Building2 className="h-6 w-6 text-muted-foreground" />
@@ -490,15 +492,15 @@ export default function InterestRatesPage() {
                       rel="noopener noreferrer"
                       className="flex flex-col items-center p-3 rounded-lg border hover:bg-muted/50 transition-colors"
                     >
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-2">
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-2 overflow-hidden">
                         {bank.logo ? (
-                          <img
+                          <Image
                             src={bank.logo}
                             alt={bank.name}
-                            className="w-6 h-6 object-contain"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
+                            width={24}
+                            height={24}
+                            className="object-contain"
+                            unoptimized
                           />
                         ) : (
                           <Building2 className="h-5 w-5 text-muted-foreground" />
@@ -516,4 +518,3 @@ export default function InterestRatesPage() {
     </div>
   );
 }
-
