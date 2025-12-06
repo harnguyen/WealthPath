@@ -17,6 +17,10 @@
     @admin path /admin /admin/*
     reverse_proxy @admin admin:8081
     
+    # Dozzle log viewer (VPN access only via /logs)
+    @logs path /logs /logs/*
+    reverse_proxy @logs dozzle:8080
+    
     # API routes to backend
     reverse_proxy /api/* backend:8080
     

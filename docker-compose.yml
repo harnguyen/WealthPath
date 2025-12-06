@@ -71,6 +71,20 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # Dozzle - Docker Log Viewer (VPN access only)
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      DOZZLE_USERNAME: ${DOZZLE_USERNAME}
+      DOZZLE_PASSWORD: ${DOZZLE_PASSWORD}
+      DOZZLE_NO_ANALYTICS: "true"
+    ports:
+      - "127.0.0.1:8888:8080"
+
 volumes:
   postgres_data:
 
