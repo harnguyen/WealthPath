@@ -27,3 +27,5 @@ CREATE INDEX IF NOT EXISTS idx_recurring_active ON recurring_transactions(is_act
 
 
 
+
+

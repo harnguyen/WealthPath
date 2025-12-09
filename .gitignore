@@ -29,6 +29,9 @@ npm-debug.log*
 
 # Testing
 coverage/
+test-results/
+playwright-report/
+*.out
 
 # Database
 *.sql.backup

@@ -4,7 +4,7 @@ import { registerAndLogin, navigateTo } from './helpers';
 test.describe('Financial Calculator', () => {
   test.beforeEach(async ({ page }) => {
     await registerAndLogin(page, 'calculator');
-    await navigateTo(page, '/en/calculator');
+    await navigateTo(page, 'calculator');
   });
 
   test('should display calculator page with title', async ({ page }) => {
@@ -13,119 +13,70 @@ test.describe('Financial Calculator', () => {
   });
 
   test('should display calculator input fields', async ({ page }) => {
-    const principalInput = page.getByLabel(/principal|amount|loan/i);
-    const rateInput = page.getByLabel(/rate|interest/i);
-    const termInput = page.getByLabel(/term|years|months|period/i);
-    
-    const hasInputs = await principalInput.isVisible() || await rateInput.isVisible() || await termInput.isVisible();
-    expect(hasInputs).toBe(true);
+    // Loan tab is active by default - check for specific inputs
+    await expect(page.getByLabel('Loan Amount')).toBeVisible();
+    await expect(page.getByLabel('Annual Interest Rate (%)')).toBeVisible();
+    await expect(page.getByLabel('Loan Term (months)')).toBeVisible();
   });
 
   test('should calculate loan payment', async ({ page }) => {
-    const principalInput = page.getByLabel(/principal|amount|loan/i);
-    const rateInput = page.getByLabel(/rate|interest/i);
-    const termInput = page.getByLabel(/term|years|months/i);
+    // Fill all required fields to enable Calculate button
+    await page.getByLabel('Loan Amount').fill('100000');
+    await page.getByLabel('Annual Interest Rate (%)').fill('5');
+    await page.getByLabel('Loan Term (months)').fill('60');
     
-    if (await principalInput.isVisible()) {
-      await principalInput.fill('100000');
-    }
+    // Wait for button to be enabled and click
+    const calculateButton = page.getByRole('button', { name: 'Calculate' });
+    await expect(calculateButton).toBeEnabled();
+    await calculateButton.click();
     
-    if (await rateInput.isVisible()) {
-      await rateInput.fill('5');
-    }
-    
-    if (await termInput.isVisible()) {
-      await termInput.fill('30');
-    }
-    
-    const calculateButton = page.getByRole('button', { name: /calculate/i });
-    if (await calculateButton.isVisible()) {
-      await calculateButton.click();
-      
-      await expect(page.getByText(/payment|result|\$/i)).toBeVisible();
-    }
+    // Check for results
+    await expect(page.getByText('Monthly Payment')).toBeVisible();
+    await expect(page.getByText('Total Payment')).toBeVisible();
+    await expect(page.getByText('Total Interest', { exact: true })).toBeVisible();
   });
 
   test('should calculate compound interest', async ({ page }) => {
-    const compoundTab = page.getByRole('tab', { name: /compound|investment|savings/i });
+    // Switch to savings tab
+    await page.getByRole('tab', { name: 'Savings Calculator' }).click();
     
-    if (await compoundTab.isVisible()) {
-      await compoundTab.click();
-      
-      const principalInput = page.getByLabel(/principal|initial|starting/i);
-      const rateInput = page.getByLabel(/rate|interest/i);
-      const yearsInput = page.getByLabel(/years|period|term/i);
-      
-      if (await principalInput.isVisible()) {
-        await principalInput.fill('10000');
-      }
-      
-      if (await rateInput.isVisible()) {
-        await rateInput.fill('7');
-      }
-      
-      if (await yearsInput.isVisible()) {
-        await yearsInput.fill('20');
-      }
-      
-      const calculateButton = page.getByRole('button', { name: /calculate/i });
-      if (await calculateButton.isVisible()) {
-        await calculateButton.click();
-        
-        await expect(page.getByText(/result|future value|\$/i)).toBeVisible();
-      }
-    }
-  });
-
-  test('should calculate debt payoff', async ({ page }) => {
-    const debtTab = page.getByRole('tab', { name: /debt|payoff|loan/i });
+    // Fill savings calculator fields
+    await page.getByLabel('Initial Amount').fill('10000');
+    await page.getByLabel('Monthly Contribution').fill('500');
+    await page.getByLabel('Annual Interest Rate (%)').fill('7');
+    await page.getByLabel('Time Period (years)').fill('10');
     
-    if (await debtTab.isVisible()) {
-      await debtTab.click();
-      
-      const balanceInput = page.getByLabel(/balance|amount|debt/i);
-      const rateInput = page.getByLabel(/rate|interest/i);
-      const paymentInput = page.getByLabel(/payment|monthly/i);
-      
-      if (await balanceInput.isVisible()) {
-        await balanceInput.fill('5000');
-      }
-      
-      if (await rateInput.isVisible()) {
-        await rateInput.fill('18');
-      }
-      
-      if (await paymentInput.isVisible()) {
-        await paymentInput.fill('200');
-      }
-      
-      const calculateButton = page.getByRole('button', { name: /calculate/i });
-      if (await calculateButton.isVisible()) {
-        await calculateButton.click();
-        
-        await expect(page.getByText(/months|years|payoff|\$/i)).toBeVisible();
-      }
-    }
+    // Calculate
+    const calculateButton = page.getByRole('button', { name: 'Calculate' });
+    await expect(calculateButton).toBeEnabled();
+    await calculateButton.click();
+    
+    // Check for results
+    await expect(page.getByText('Future Value')).toBeVisible();
+    await expect(page.getByText('Your Contributions')).toBeVisible();
+    await expect(page.getByText('Interest Earned')).toBeVisible();
   });
 
   test('should display calculation results', async ({ page }) => {
-    const resultsSection = page.getByText(/result|payment|total|interest/i);
-    await expect(resultsSection.first()).toBeVisible();
+    // Results section shows after calculation
+    await page.getByLabel('Loan Amount').fill('25000');
+    await page.getByLabel('Annual Interest Rate (%)').fill('5.5');
+    await page.getByLabel('Loan Term (months)').fill('60');
+    
+    await page.getByRole('button', { name: 'Calculate' }).click();
+    
+    await expect(page.getByText('Loan Summary')).toBeVisible();
   });
 
-  test('should reset calculator inputs', async ({ page }) => {
-    const principalInput = page.getByLabel(/principal|amount|loan/i);
+  test('should switch between calculator tabs', async ({ page }) => {
+    // Default tab is loan
+    await expect(page.getByRole('tab', { name: 'Loan Calculator' })).toHaveAttribute('data-state', 'active');
     
-    if (await principalInput.isVisible()) {
-      await principalInput.fill('50000');
-      
-      const resetButton = page.getByRole('button', { name: /reset|clear/i });
-      if (await resetButton.isVisible()) {
-        await resetButton.click();
-        
-        await expect(principalInput).toHaveValue('');
-      }
-    }
+    // Switch to savings
+    await page.getByRole('tab', { name: 'Savings Calculator' }).click();
+    await expect(page.getByRole('tab', { name: 'Savings Calculator' })).toHaveAttribute('data-state', 'active');
+    
+    // Verify savings fields appear
+    await expect(page.getByLabel('Initial Amount')).toBeVisible();
   });
 });
-

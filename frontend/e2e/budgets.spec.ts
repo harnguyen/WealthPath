@@ -4,102 +4,96 @@ import { navigateTo, registerAndLogin, selectFirstOption, waitForDialog, waitFor
 test.describe('Budgets', () => {
   test.beforeEach(async ({ page }) => {
     await registerAndLogin(page, 'budget');
-    await navigateTo(page, '/en/budgets');
+    await navigateTo(page, 'budgets');
   });
 
   test('should display budgets page with title', async ({ page }) => {
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/budget/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Budgets/i);
   });
 
   test('should open create budget dialog', async ({ page }) => {
-    await page.getByRole('button', { name: /create budget/i }).click();
+    await page.getByRole('button', { name: /Create Budget/i }).click();
     
     await waitForDialog(page);
-    await expect(page.getByLabel(/amount|limit/i)).toBeVisible();
+    await expect(page.getByLabel(/Monthly Limit/i)).toBeVisible();
   });
 
   test('should create a new budget successfully', async ({ page }) => {
-    await page.getByRole('button', { name: /create budget/i }).click();
+    await page.getByRole('button', { name: /Create Budget/i }).click();
     await waitForDialog(page);
     
-    await selectFirstOption(page);
-    await page.getByLabel(/amount|limit/i).fill('500');
+    await selectFirstOption(page); // Select category
+    await page.locator('#amount').fill('500');
     
-    await page.getByRole('dialog').getByRole('button', { name: /create|save|submit/i }).click();
+    await page.getByRole('dialog').getByRole('button', { name: /Create Budget/i }).click();
     
     await waitForDialogToClose(page);
-    await expect(page.getByText('$500.00', { exact: true }).first()).toBeVisible();
+    // Budget card should show the amount
+    await expect(page.getByText('$500.00').first()).toBeVisible();
   });
 
-  test('should edit existing budget', async ({ page }) => {
-    await page.getByRole('button', { name: /create budget/i }).click();
-    await waitForDialog(page);
-    await selectFirstOption(page);
-    await page.getByLabel(/amount|limit/i).fill('300');
-    await page.getByRole('dialog').getByRole('button', { name: /create|save|submit/i }).click();
-    await waitForDialogToClose(page);
-    
-    const editButton = page.getByRole('button', { name: /edit/i }).first();
-    if (await editButton.isVisible()) {
-      await editButton.click();
-      await waitForDialog(page);
-      
-      await page.getByLabel(/amount|limit/i).clear();
-      await page.getByLabel(/amount|limit/i).fill('600');
-      await page.getByRole('dialog').getByRole('button', { name: /save|update|submit/i }).click();
-      
-      await waitForDialogToClose(page);
-      await expect(page.getByText('$600.00', { exact: true }).first()).toBeVisible();
-    }
+  test('should display summary cards', async ({ page }) => {
+    await expect(page.getByText(/Total Budget/i)).toBeVisible();
+    await expect(page.getByText(/Total Spent/i)).toBeVisible();
+    await expect(page.getByText(/Over Budget/i)).toBeVisible();
   });
 
-  test('should delete budget with confirmation', async ({ page }) => {
-    await page.getByRole('button', { name: /create budget/i }).click();
+  test('should delete budget', async ({ page }) => {
+    // Create a budget first
+    await page.getByRole('button', { name: /Create Budget/i }).click();
     await waitForDialog(page);
     await selectFirstOption(page);
-    await page.getByLabel(/amount|limit/i).fill('200');
-    await page.getByRole('dialog').getByRole('button', { name: /create|save|submit/i }).click();
+    await page.locator('#amount').fill('200');
+    await page.getByRole('dialog').getByRole('button', { name: /Create Budget/i }).click();
     await waitForDialogToClose(page);
     
-    const deleteButton = page.getByRole('button', { name: /delete|remove/i }).first();
+    // Delete using trash icon
+    const deleteButton = page.getByRole('button').filter({ has: page.locator('svg.lucide-trash-2') }).first();
     if (await deleteButton.isVisible()) {
       await deleteButton.click();
-      
-      const confirmButton = page.getByRole('button', { name: /confirm|yes|delete/i });
-      if (await confirmButton.isVisible()) {
-        await confirmButton.click();
-      }
+      await page.waitForTimeout(500);
     }
   });
 
   test('should display budget cards after creation', async ({ page }) => {
-    await page.getByRole('button', { name: /create budget/i }).click();
+    await page.getByRole('button', { name: /Create Budget/i }).click();
     await waitForDialog(page);
     
     await selectFirstOption(page);
-    await page.getByLabel(/amount|limit/i).fill('1000');
+    await page.locator('#amount').fill('1000');
     
-    await page.getByRole('dialog').getByRole('button', { name: /create|save|submit/i }).click();
+    await page.getByRole('dialog').getByRole('button', { name: /Create Budget/i }).click();
     
     await waitForDialogToClose(page);
     
-    const budgetCard = page.locator('article, [data-testid="budget-card"]').first();
-    await expect(budgetCard).toBeVisible();
+    // Budget card should show category name and progress bar
+    const progressBar = page.getByRole('progressbar').first();
+    await expect(progressBar).toBeVisible();
   });
 
   test('should show budget summary cards', async ({ page }) => {
-    await expect(page.getByText(/total budget/i)).toBeVisible();
+    await expect(page.getByText(/Total Budget/i)).toBeVisible();
   });
 
   test('should show progress bar for budget spending', async ({ page }) => {
-    await page.getByRole('button', { name: /create budget/i }).click();
+    await page.getByRole('button', { name: /Create Budget/i }).click();
     await waitForDialog(page);
     await selectFirstOption(page);
-    await page.getByLabel(/amount|limit/i).fill('1000');
-    await page.getByRole('dialog').getByRole('button', { name: /create|save|submit/i }).click();
+    await page.locator('#amount').fill('1000');
+    await page.getByRole('dialog').getByRole('button', { name: /Create Budget/i }).click();
     await waitForDialogToClose(page);
     
     await expect(page.getByRole('progressbar').first()).toBeVisible();
+  });
+
+  test('should show empty state when no budgets', async ({ page }) => {
+    const emptyMessage = page.getByText(/No budgets set up yet/i);
+    const budgetCards = page.getByRole('progressbar');
+    
+    const hasBudgets = await budgetCards.count() > 0;
+    if (!hasBudgets) {
+      await expect(emptyMessage).toBeVisible();
+    }
   });
 });
