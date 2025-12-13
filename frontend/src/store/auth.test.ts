@@ -38,7 +38,7 @@ describe('useAuthStore', () => {
 
   describe('login', () => {
     it('sets loading state during login', async () => {
-      const mockUser = { id: '1', email: 'test@example.com', name: 'Test' };
+      const mockUser = { id: '1', email: 'test@example.com', name: 'Test', currency: 'USD', createdAt: '2024-01-01' };
       mockApi.login.mockImplementation(
         () =>
           new Promise((resolve) =>
