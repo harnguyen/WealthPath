@@ -7,7 +7,7 @@
 
 set -e
 
-REPO="thanhhungg97/WealthPath"
+REPO="harnguyen/WealthPath"
 
 echo "🔐 Setting up GitHub Secrets for $REPO"
 echo "================================================"

@@ -1,10 +1,16 @@
 # WealthPath Ansible Inventory
 # Usage: ansible-playbook -i inventory.yml playbook.yml
+#
+# Required environment variables:
+#   SERVER_IP - Target server IP address
+#   DOMAIN    - Your domain name (e.g., example.com)
+#
+# Optional: Set via environment or GitHub Secrets for CI/CD
 
 all:
   hosts:
     wealthpath:
-      ansible_host: "{{ lookup('env', 'SERVER_IP') | default('129.212.209.37', true) }}"
+      ansible_host: "{{ lookup('env', 'SERVER_IP') }}"
       ansible_user: root
       ansible_ssh_private_key_file: ~/.ssh/wealthpath_key
       ansible_python_interpreter: /usr/bin/python3
@@ -13,14 +19,14 @@ all:
     # App configuration
     app_name: wealthpath
     app_dir: /opt/wealthpath
-    repo_url: https://github.com/thanhhungg97/WealthPath.git
+    repo_url: https://github.com/harnguyen/WealthPath.git
     
     # Database
     postgres_user: wealthpath
     postgres_db: wealthpath
     
-    # Domain & SSL
-    domain: "{{ lookup('env', 'DOMAIN') | default('wealthpath.duckdns.org', true) }}"
+    # Domain & SSL (required)
+    domain: "{{ lookup('env', 'DOMAIN') }}"
     use_ssl: "{{ lookup('env', 'USE_SSL') | default('true', true) }}"
     use_zerossl: "{{ lookup('env', 'USE_ZEROSSL') | default('true', true) }}"
     admin_email: "{{ lookup('env', 'ADMIN_EMAIL') | default('admin@example.com', true) }}"
@@ -36,9 +42,9 @@ all:
     # AI (from GitHub Secrets via env vars)
     openai_api_key: "{{ lookup('env', 'OPENAI_API_KEY') | default('', true) }}"
     
-    # SEO & Analytics
+    # SEO & Analytics (from GitHub Secrets via env vars)
     ga_measurement_id: "{{ lookup('env', 'GA_MEASUREMENT_ID') | default('', true) }}"
-    google_site_verification: "{{ lookup('env', 'GOOGLE_SITE_VERIFICATION') | default('hmaoUIUVvl1QGRo_Oj_hRbSWzAjI5Por_V4QAfEC9ZM', true) }}"
+    google_site_verification: "{{ lookup('env', 'GOOGLE_SITE_VERIFICATION') | default('', true) }}"
     
     # Docker compose file
     compose_file: docker-compose.deploy.yaml

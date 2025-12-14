@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run this on your fresh VPS
-# Usage: curl -sSL https://raw.githubusercontent.com/thanhhungg97/WealthPath/main/scripts/server-setup.sh | bash
+# Usage: curl -sSL https://raw.githubusercontent.com/harnguyen/WealthPath/main/scripts/server-setup.sh | bash
 
 set -e
 
@@ -36,7 +36,7 @@ cd /opt/wealthpath
 
 # Clone repo
 echo "📥 Cloning WealthPath..."
-git clone https://github.com/thanhhungg97/WealthPath.git .
+git clone https://github.com/harnguyen/WealthPath.git .
 
 # Generate secrets
 echo "🔐 Generating secrets..."

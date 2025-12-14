@@ -27,6 +27,8 @@ jobs:
   # Run tests first
   test-backend:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -44,6 +46,8 @@ jobs:
 
   test-frontend:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -181,7 +185,8 @@ jobs:
     if: ${{ github.event.inputs.skip_deploy != 'true' }}
     runs-on: ubuntu-latest
     environment: production
-    
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       

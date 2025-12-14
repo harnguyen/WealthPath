@@ -114,7 +114,7 @@ Best for full control and cost-effectiveness at scale.
 
 4. **Clone and Deploy**
    ```bash
-   git clone https://github.com/thanhhungg97/WealthPath.git
+   git clone https://github.com/harnguyen/WealthPath.git
    cd WealthPath
    
    # Create production env file
