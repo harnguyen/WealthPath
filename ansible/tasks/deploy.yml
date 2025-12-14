@@ -3,28 +3,28 @@
 # Pulls Docker images and starts services
 
 - name: Pull Docker images
-  community.docker.docker_compose_v2:
-    project_src: "{{ app_dir }}"
-    files:
-      - "{{ compose_file }}"
-    pull: always
-    state: present
-  # Run as root since ubuntu user needs re-login for docker group
+  shell: |
+    cd {{ app_dir }}
+    docker compose -f {{ compose_file }} pull --quiet
+  async: 600  # 10 minute timeout
+  poll: 10
+  register: pull_result
+  ignore_errors: yes
+
+- name: Show pull result
+  debug:
+    msg: "Image pull {{ 'succeeded' if pull_result.rc == 0 else 'had issues (continuing anyway)' }}"
 
 - name: Stop existing services
-  community.docker.docker_compose_v2:
-    project_src: "{{ app_dir }}"
-    files:
-      - "{{ compose_file }}"
-    state: absent
+  shell: |
+    cd {{ app_dir }}
+    docker compose -f {{ compose_file }} down --remove-orphans || true
   ignore_errors: yes
 
 - name: Start services
-  community.docker.docker_compose_v2:
-    project_src: "{{ app_dir }}"
-    files:
-      - "{{ compose_file }}"
-    state: present
+  shell: |
+    cd {{ app_dir }}
+    docker compose -f {{ compose_file }} up -d
   register: compose_result
 
 - name: List running containers
