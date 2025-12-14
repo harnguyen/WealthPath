@@ -28,11 +28,19 @@
     state: started
     enabled: yes
 
+- name: Check if ubuntu user exists
+  getent:
+    database: passwd
+    key: ubuntu
+  register: ubuntu_user
+  ignore_errors: yes
+
 - name: Add ubuntu user to docker group
   user:
     name: ubuntu
     groups: docker
     append: yes
+  when: ubuntu_user is succeeded
 
 
 

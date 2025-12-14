@@ -56,9 +56,11 @@ ansible/secrets.yml
 ansible/.vault_pass
 .vault_pass
 
-# Terraform
+# Terraform / Terragrunt
 *.tfstate
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
+.terragrunt-cache/
+terragrunt-debug.tfvars.json
 
