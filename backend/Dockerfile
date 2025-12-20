@@ -6,6 +6,10 @@ WORKDIR /app
 # Install dependencies
 RUN apk add --no-cache git
 
+# Set Go cache directories to writable locations
+ENV GOCACHE=/tmp/go-cache
+ENV GOMODCACHE=/tmp/go-mod
+
 # Copy go mod files
 COPY go.mod go.sum* ./
 RUN go mod download
