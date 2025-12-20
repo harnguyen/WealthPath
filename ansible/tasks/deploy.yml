@@ -15,17 +15,16 @@
   debug:
     msg: "Image pull {{ 'succeeded' if pull_result.rc == 0 else 'had issues (continuing anyway)' }}"
 
-- name: Stop existing services
+- name: Stop and start services atomically
   shell: |
     cd {{ app_dir }}
-    docker compose -f {{ compose_file }} down --remove-orphans || true
-  ignore_errors: yes
-
-- name: Start services
-  shell: |
-    cd {{ app_dir }}
+    # Stop and start in a single command to minimize downtime and connection issues
+    docker compose -f {{ compose_file }} down --remove-orphans && \
     docker compose -f {{ compose_file }} up -d
   register: compose_result
+  retries: 3
+  delay: 10
+  until: compose_result.rc == 0
 
 - name: List running containers
   shell: docker ps --format "table {{ '{{' }}.Names{{ '}}' }}\t{{ '{{' }}.Status{{ '}}' }}\t{{ '{{' }}.Ports{{ '}}' }}"
