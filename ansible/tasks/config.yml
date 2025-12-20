@@ -18,10 +18,6 @@
     final_domain: "{{ domain }}"
     protocol: "{{ 'https' if use_ssl == 'true' else 'http' }}"
 
-- name: Set ACME CA for ZeroSSL
-  set_fact:
-    acme_ca: "{{ 'https://acme.zerossl.com/v2/DV90' if (use_zerossl == 'true' and use_ssl == 'true') else '' }}"
-
 - name: Set admin credentials from env vars or secrets.yml
   set_fact:
     admin_username: "{{ lookup('env', 'ADMIN_USERNAME') or admin_username | default('admin') }}"

@@ -2,14 +2,9 @@
 #
 # Environment variables:
 #   DOMAIN    - Domain name (e.g., wealthpath.duckdns.org)
-#   ACME_CA   - Optional: ACME CA URL for ZeroSSL
-#   ACME_EMAIL - Optional: Email for certificate registration
-
-{
-    # Use ZeroSSL if ACME_CA is set
-    acme_ca {$ACME_CA:}
-    email {$ACME_EMAIL:}
-}
+#   ACME_EMAIL - Email for certificate registration (optional)
+#
+# Uses Let's Encrypt by default (no configuration needed)
 
 # Main app - wealthpath.duckdns.org
 {$DOMAIN:localhost} {
