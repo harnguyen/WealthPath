@@ -55,10 +55,26 @@
     backup: yes
   notify: restart postgresql
 
-- name: Allow Docker network connections in pg_hba.conf
+- name: Allow Docker default bridge network (172.17.0.0/16)
   lineinfile:
     path: "/etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf"
     line: "host    all             all             172.17.0.0/16           md5"
+    state: present
+    backup: yes
+  notify: restart postgresql
+
+- name: Allow Docker Compose custom network (172.18.0.0/16)
+  lineinfile:
+    path: "/etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf"
+    line: "host    all             all             172.18.0.0/16           md5"
+    state: present
+    backup: yes
+  notify: restart postgresql
+
+- name: Allow Docker overlay networks (172.19-31.0.0/16)
+  lineinfile:
+    path: "/etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf"
+    line: "host    all             all             172.16.0.0/12           md5"
     state: present
     backup: yes
   notify: restart postgresql
