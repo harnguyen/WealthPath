@@ -7,7 +7,7 @@
 # =============================================================================
 
 - name: Install PostgreSQL
-  apt:
+  ansible.builtin.apt:
     name:
       - postgresql
       - postgresql-contrib
@@ -16,13 +16,13 @@
     update_cache: yes
 
 - name: Start PostgreSQL service
-  systemd:
+  ansible.builtin.systemd:
     name: postgresql
     state: started
     enabled: yes
 
 - name: Wait for PostgreSQL to be ready
-  wait_for:
+  ansible.builtin.wait_for:
     port: 5432
     host: localhost
     delay: 5
@@ -33,97 +33,87 @@
 # =============================================================================
 
 - name: Get PostgreSQL major version
-  shell: psql --version | awk '{print $3}' | cut -d. -f1
+  ansible.builtin.shell: psql --version | awk '{print $3}' | cut -d. -f1
   register: postgres_version
   changed_when: false
 
 - name: Configure PostgreSQL to listen on all interfaces (for Docker access)
-  lineinfile:
-    path: "/etc/postgresql/{{ postgres_version.stdout }}/main/postgresql.conf"
-    regexp: "^#?listen_addresses\\s*="
-    line: "listen_addresses = '*'"
-    state: present
-    backup: yes
+  community.postgresql.postgresql_set:
+    name: listen_addresses
+    value: "*"
+  become_user: postgres
   notify: restart postgresql
 
 - name: Configure PostgreSQL to allow local connections
-  lineinfile:
-    path: "/etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf"
-    regexp: "^host\\s+all\\s+all\\s+127\\.0\\.0\\.1/32\\s+md5"
-    line: "host    all             all             127.0.0.1/32            md5"
+  community.postgresql.postgresql_pg_hba:
+    dest: "/etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf"
+    contype: host
+    databases: all
+    users: all
+    address: 127.0.0.1/32
+    method: md5
     state: present
     backup: yes
   notify: restart postgresql
 
-- name: Allow Docker default bridge network (172.17.0.0/16)
-  lineinfile:
-    path: "/etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf"
-    line: "host    all             all             172.17.0.0/16           md5"
+- name: Allow Docker network connections in pg_hba.conf
+  community.postgresql.postgresql_pg_hba:
+    dest: "/etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf"
+    contype: host
+    databases: all
+    users: all
+    address: 172.17.0.0/16
+    method: md5
     state: present
     backup: yes
-  notify: restart postgresql
-
-- name: Allow Docker Compose custom network (172.18.0.0/16)
-  lineinfile:
-    path: "/etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf"
-    line: "host    all             all             172.18.0.0/16           md5"
-    state: present
-    backup: yes
-  notify: restart postgresql
-
-- name: Allow Docker overlay networks (172.19-31.0.0/16)
-  lineinfile:
-    path: "/etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf"
-    line: "host    all             all             172.16.0.0/12           md5"
-    state: present
-    backup: yes
+    comment: "Docker container access"
   notify: restart postgresql
 
 - name: Flush handlers to apply PostgreSQL config changes
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers
 
 # =============================================================================
 # PHASE 3: Database Setup
 # =============================================================================
 
 - name: Create PostgreSQL database
-  become_user: postgres
-  postgresql_db:
+  community.postgresql.postgresql_db:
     name: "{{ postgres_db }}"
     state: present
+  become_user: postgres
 
 # =============================================================================
 # PHASE 4: User Provisioning (after database is ready)
 # =============================================================================
 
 - name: Ensure postgres_password is defined
-  fail:
+  ansible.builtin.fail:
     msg: "postgres_password is not defined. Ensure secrets are generated in pre_tasks."
   when: postgres_password is not defined
 
 - name: Create PostgreSQL user
-  become_user: postgres
-  postgresql_user:
+  community.postgresql.postgresql_user:
     name: "{{ postgres_user }}"
     password: "{{ postgres_password }}"
     state: present
+  become_user: postgres
   no_log: true
 
 - name: Grant user access to database
-  become_user: postgres
-  postgresql_privs:
+  community.postgresql.postgresql_privs:
     database: "{{ postgres_db }}"
     privs: ALL
     type: database
     role: "{{ postgres_user }}"
     state: present
+  become_user: postgres
 
 - name: Grant user schema privileges
-  become_user: postgres
-  postgresql_privs:
+  community.postgresql.postgresql_privs:
     database: "{{ postgres_db }}"
     privs: ALL
     type: schema
     objs: public
     role: "{{ postgres_user }}"
     state: present
+  become_user: postgres
